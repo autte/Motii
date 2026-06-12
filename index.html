@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CP Growth">
+<meta name="theme-color" content="#1a1916">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<title>CP Growth OS</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#f8f7f4;--card:#fff;--border:#e8e4dd;
+  --text:#1a1916;--muted:#7a7672;--hint:#b0aba4;
+  --green:#1a7a52;--green-bg:#e8f5ee;--green-mid:#2ea066;
+  --amber:#8a5c00;--amber-bg:#fef3d8;--amber-mid:#d4920a;
+  --red:#8a2020;--red-bg:#fdeaea;--red-mid:#d44040;
+  --blue:#1a4a8a;--blue-bg:#e8f0fb;--blue-mid:#2e6ed4;
+  --purple:#4a1a8a;--purple-bg:#f0ebfd;--purple-mid:#7e4ed4;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bot: env(safe-area-inset-bottom, 0px);
+}
+html,body{height:100%;overflow:hidden;background:var(--bg)}
+body{font-family:-apple-system,'Helvetica Neue',sans-serif;font-size:14px;line-height:1.5;color:var(--text);display:flex;flex-direction:column}
+
+/* status bar spacer */
+.status-bar{height:var(--safe-top);background:var(--bg);flex-shrink:0}
+
+/* top header */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:10px 16px 8px;background:var(--bg);border-bottom:0.5px solid var(--border);flex-shrink:0}
+.logo{font-size:16px;font-weight:600;letter-spacing:-.3px}.logo span{color:var(--green-mid)}
+.lang-switch{display:flex;gap:3px;background:#ede9e2;padding:2px;border-radius:7px}
+.lang-btn{padding:3px 9px;border:none;background:none;font-size:11px;font-weight:500;color:var(--muted);border-radius:5px;cursor:pointer;transition:all .12s}
+.lang-btn.active{background:#fff;color:var(--text);box-shadow:0 1px 2px rgba(0,0,0,.1)}
+
+/* main scroll area */
+.main{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding:0 0 calc(60px + var(--safe-bot))}
+
+/* bottom nav */
+.bottomnav{position:fixed;bottom:0;left:0;right:0;height:calc(56px + var(--safe-bot));background:var(--card);border-top:0.5px solid var(--border);display:flex;align-items:flex-start;padding-top:8px;z-index:100}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:0 4px}
+.nav-icon{font-size:20px;line-height:1}
+.nav-label{font-size:10px;font-weight:500;color:var(--muted);transition:color .15s}
+.nav-item.active .nav-label{color:var(--green-mid)}
+.nav-item.active .nav-icon{transform:scale(1.1)}
+
+/* panels */
+.panel{display:none;padding:16px}.panel.active{display:block}
+
+/* sport selector */
+.sport-scroll{display:flex;gap:8px;overflow-x:auto;padding:0 16px 4px;margin:0 -16px;scrollbar-width:none}
+.sport-scroll::-webkit-scrollbar{display:none}
+.sport-chip{flex-shrink:0;display:flex;align-items:center;gap:6px;padding:8px 14px;background:var(--card);border:0.5px solid var(--border);border-radius:20px;cursor:pointer;transition:all .12s;white-space:nowrap}
+.sport-chip.sel{background:var(--green-bg);border-color:var(--green-mid)}
+.sport-chip-icon{font-size:16px}
+.sport-chip-name{font-size:13px;font-weight:500;color:var(--muted)}
+.sport-chip.sel .sport-chip-name{color:var(--green)}
+
+/* camera area */
+.camera-section{margin-top:12px}
+.camera-box{background:var(--card);border:0.5px solid var(--border);border-radius:14px;overflow:hidden;position:relative;aspect-ratio:16/9}
+#live-video{width:100%;height:100%;object-fit:cover;display:none;background:#000}
+#preview-video{width:100%;height:100%;object-fit:cover;display:none;background:#000}
+.camera-placeholder{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:#f3f0ea}
+.cam-big-icon{font-size:40px;opacity:.3}
+.cam-placeholder-text{font-size:13px;color:var(--hint)}
+.camera-controls{display:flex;gap:8px;margin-top:10px}
+.cam-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:12px;border-radius:10px;border:0.5px solid var(--border);background:var(--card);font-size:13px;font-weight:500;color:var(--text);cursor:pointer;transition:all .12s;-webkit-appearance:none}
+.cam-btn:active{transform:scale(.97)}
+.cam-btn.primary{background:var(--text);color:#fff;border-color:var(--text)}
+.cam-btn.red{background:var(--red-mid);color:#fff;border-color:var(--red-mid)}
+.cam-btn.green{background:var(--green-mid);color:#fff;border-color:var(--green-mid)}
+.cam-btn:disabled{opacity:.35;cursor:not-allowed}
+.rec-dot{width:8px;height:8px;border-radius:50%;background:#fff;animation:blink 1s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+.rec-timer{font-size:11px;font-weight:600;font-variant-numeric:tabular-nums}
+
+/* upload alt */
+.upload-row{display:flex;align-items:center;gap:8px;margin-top:8px}
+.divider-line{flex:1;height:0.5px;background:var(--border)}
+.divider-text{font-size:11px;color:var(--hint)}
+
+/* analyze btn */
+.analyze-btn{width:100%;margin-top:12px;padding:14px;background:var(--text);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;transition:opacity .15s;letter-spacing:-.2px}
+.analyze-btn:active{transform:scale(.99)}
+.analyze-btn:disabled{opacity:.35;cursor:not-allowed}
+
+/* progress */
+.progress-wrap{margin-top:12px;display:flex;flex-direction:column;gap:6px}
+.step{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--card);border:0.5px solid var(--border);border-radius:8px;transition:all .3s}
+.step.active{border-color:var(--blue-mid);background:var(--blue-bg)}
+.step.done{border-color:var(--green-mid);background:var(--green-bg)}
+.step-dot{width:7px;height:7px;border-radius:50%;background:var(--hint);flex-shrink:0;transition:background .3s}
+.step.active .step-dot{background:var(--blue-mid);animation:pulse 1s infinite}
+.step.done .step-dot{background:var(--green-mid)}
+.step-txt{font-size:12px;color:var(--muted)}
+.step.active .step-txt{color:var(--blue);font-weight:500}
+.step.done .step-txt{color:var(--green)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* results */
+.result-hero{display:flex;align-items:center;justify-content:space-between;padding:14px;background:var(--card);border:0.5px solid var(--border);border-radius:14px;margin-bottom:10px}
+.result-sport{font-size:15px;font-weight:600}
+.result-date{font-size:11px;color:var(--muted);margin-top:2px}
+.big-score{text-align:right}
+.big-num{font-size:36px;font-weight:600;line-height:1}
+.big-lbl{font-size:10px;color:var(--muted);margin-top:2px}
+.score-hi{color:var(--green-mid)}.score-md{color:var(--amber-mid)}.score-lo{color:var(--red-mid)}
+
+.layer-title{font-size:11px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin:14px 0 8px;display:flex;align-items:center;gap:5px}
+.score-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.sc{background:var(--card);border:0.5px solid var(--border);border-radius:10px;padding:10px 12px}
+.sc-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
+.sc-name{font-size:12px;font-weight:500;line-height:1.3;flex:1;margin-right:8px}
+.sc-num{font-size:17px;font-weight:600}
+.sc-bar{height:4px;background:#edeae4;border-radius:2px;overflow:hidden;margin-bottom:5px}
+.sc-fill{height:100%;border-radius:2px;transition:width 1s ease}
+.fill-hi{background:var(--green-mid)}.fill-md{background:var(--amber-mid)}.fill-lo{background:var(--red-mid)}
+.sc-note{font-size:10px;color:var(--muted);line-height:1.35}
+
+.insight-list{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+.ins{background:var(--card);border:0.5px solid var(--border);border-radius:10px;padding:10px 12px}
+.ins.good{border-left:3px solid var(--green-mid)}
+.ins.warn{border-left:3px solid var(--amber-mid)}
+.ins.alert{border-left:3px solid var(--red-mid)}
+.ins.next{border-left:3px solid var(--purple-mid);background:var(--purple-bg)}
+.ins-head{font-size:11px;font-weight:500;color:var(--muted);margin-bottom:3px}
+.ins-body{font-size:13px;line-height:1.5}
+
+/* history panel */
+.hist-item{background:var(--card);border:0.5px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:7px}
+.hist-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.hist-sport{font-size:13px;font-weight:600}
+.hist-score-num{font-size:20px;font-weight:600}
+.hist-date{font-size:11px;color:var(--muted)}
+.hist-bars{display:flex;flex-direction:column;gap:4px}
+.hbar-row{display:flex;align-items:center;gap:6px}
+.hbar-lbl{font-size:10px;color:var(--muted);min-width:64px}
+.hbar-track{flex:1;height:4px;background:#edeae4;border-radius:2px;overflow:hidden}
+.hbar-fill{height:100%;border-radius:2px;background:var(--green-mid);transition:width .8s ease}
+.hbar-val{font-size:10px;color:var(--muted);min-width:28px;text-align:right}
+
+/* log panel */
+.field{margin-bottom:14px}
+.field-label{font-size:12px;font-weight:500;color:var(--muted);margin-bottom:6px;display:block}
+.check-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.chk{padding:9px 6px;border:0.5px solid var(--border);border-radius:8px;background:var(--bg);font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;text-align:center;transition:all .12s}
+.chk.on{background:var(--green-bg);border-color:var(--green-mid);color:var(--green)}
+.star-row{display:flex;gap:10px}
+.star{font-size:24px;cursor:pointer;opacity:.25;transition:opacity .1s;line-height:1}
+.star.lit{opacity:1}
+textarea{width:100%;border:0.5px solid var(--border);border-radius:8px;padding:10px 12px;font-size:14px;font-family:inherit;color:var(--text);background:var(--card);resize:none;min-height:72px;-webkit-appearance:none}
+textarea:focus{outline:none;border-color:#999}
+.save-btn{width:100%;padding:13px;background:var(--text);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer}
+.save-btn:active{transform:scale(.99)}
+.toast{position:fixed;bottom:calc(70px + var(--safe-bot));left:50%;transform:translateX(-50%);background:var(--text);color:#fff;font-size:13px;font-weight:500;padding:9px 22px;border-radius:22px;z-index:200;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.show{opacity:1}
+
+/* section title */
+.sec-head{font-size:13px;font-weight:600;margin-bottom:10px;margin-top:4px}
+.empty-state{text-align:center;padding:3rem 1rem;color:var(--hint);font-size:13px}
+
+/* install banner */
+.install-banner{margin:12px 0;background:var(--blue-bg);border:0.5px solid var(--blue-mid);border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px}
+.install-banner-text{flex:1;font-size:12px;color:var(--blue);line-height:1.4}
+.install-banner-btn{font-size:12px;font-weight:500;color:var(--blue-mid);background:none;border:0.5px solid var(--blue-mid);border-radius:6px;padding:5px 10px;cursor:pointer;white-space:nowrap}
+</style>
+</head>
+<body>
+
+<div class="status-bar"></div>
+
+<div class="topbar">
+  <div class="logo">CP <span>Growth</span></div>
+  <div class="lang-switch">
+    <button class="lang-btn active" onclick="setLang('zh',this)">中文</button>
+    <button class="lang-btn" onclick="setLang('en',this)">EN</button>
+    <button class="lang-btn" onclick="setLang('fr',this)">FR</button>
+  </div>
+</div>
+
+<div class="main" id="main">
+
+  <!-- ANALYZE PANEL -->
+  <div class="panel active" id="panel-analyze">
+
+    <div id="install-banner" class="install-banner" style="display:none">
+      <div class="install-banner-text" id="install-text">将此页面添加到主屏幕，像APP一样使用</div>
+      <button class="install-banner-btn" id="install-btn" onclick="installPWA()">添加</button>
+    </div>
+
+    <div class="field">
+      <span class="field-label" data-i18n="chooseSport">选择今天的运动</span>
+      <div class="sport-scroll" id="sport-scroll"></div>
+    </div>
+
+    <div class="camera-section">
+      <span class="field-label" data-i18n="recordVideo">录制或上传视频（建议10–60秒）</span>
+      <div class="camera-box" id="camera-box">
+        <video id="live-video" playsinline muted></video>
+        <video id="preview-video" playsinline controls></video>
+        <div class="camera-placeholder" id="cam-placeholder">
+          <div class="cam-big-icon">🎬</div>
+          <div class="cam-placeholder-text" data-i18n="cameraHint">侧面全身拍摄效果最佳</div>
+        </div>
+      </div>
+
+      <div class="camera-controls" id="cam-controls-idle">
+        <button class="cam-btn primary" onclick="startCamera()" id="btn-start-cam">
+          <span>📷</span> <span data-i18n="openCamera">打开摄像头</span>
+        </button>
+        <button class="cam-btn" onclick="document.getElementById('file-in').click()">
+          <span>📁</span> <span data-i18n="uploadFile">上传文件</span>
+        </button>
+        <input type="file" id="file-in" accept="video/*" style="display:none" onchange="handleFile(this.files[0])">
+      </div>
+
+      <div class="camera-controls" id="cam-controls-live" style="display:none">
+        <button class="cam-btn red" onclick="startRecording()" id="btn-record">
+          <span class="rec-dot"></span> <span data-i18n="startRec">开始录制</span>
+        </button>
+        <button class="cam-btn" onclick="stopCamera()">
+          <span>✕</span> <span data-i18n="cancel">取消</span>
+        </button>
+      </div>
+
+      <div class="camera-controls" id="cam-controls-recording" style="display:none">
+        <button class="cam-btn red" onclick="stopRecording()">
+          <span>⏹</span> <span data-i18n="stopRec">停止录制</span> <span class="rec-timer" id="rec-timer">0:00</span>
+        </button>
+      </div>
+
+      <div class="camera-controls" id="cam-controls-preview" style="display:none">
+        <button class="cam-btn green" onclick="confirmVideo()">
+          <span>✓</span> <span data-i18n="useVideo">使用此视频</span>
+        </button>
+        <button class="cam-btn" onclick="retakeVideo()">
+          <span>↩</span> <span data-i18n="retake">重拍</span>
+        </button>
+      </div>
+
+      <div class="camera-controls" id="cam-controls-confirmed" style="display:none">
+        <button class="cam-btn" onclick="retakeVideo()">
+          <span>↩</span> <span data-i18n="changeVideo">更换视频</span>
+        </button>
+      </div>
+    </div>
+
+    <button class="analyze-btn" id="analyze-btn" onclick="startAnalysis()" disabled>
+      <span data-i18n="analyzeBtn">AI 动作分析</span>
+    </button>
+
+    <div class="progress-wrap" id="progress-wrap" style="display:none"></div>
+    <div id="results-wrap"></div>
+  </div>
+
+  <!-- HISTORY PANEL -->
+  <div class="panel" id="panel-history">
+    <div class="sec-head" data-i18n="historyTitle">分析历史</div>
+    <div id="hist-list"></div>
+  </div>
+
+  <!-- LOG PANEL -->
+  <div class="panel" id="panel-log">
+    <div class="sec-head" data-i18n="logTitle">今日记录</div>
+    <div class="field">
+      <span class="field-label" data-i18n="logActivities">完成的活动</span>
+      <div class="check-grid" id="log-activities"></div>
+    </div>
+    <div class="field">
+      <span class="field-label" data-i18n="logRightHand">右手主动使用</span>
+      <div class="star-row" id="stars-hand">
+        <span class="star" onclick="setStar('hand',1)">★</span>
+        <span class="star" onclick="setStar('hand',2)">★</span>
+        <span class="star" onclick="setStar('hand',3)">★</span>
+        <span class="star" onclick="setStar('hand',4)">★</span>
+        <span class="star" onclick="setStar('hand',5)">★</span>
+      </div>
+    </div>
+    <div class="field">
+      <span class="field-label" data-i18n="logGait">步态表现</span>
+      <div class="star-row" id="stars-gait">
+        <span class="star" onclick="setStar('gait',1)">★</span>
+        <span class="star" onclick="setStar('gait',2)">★</span>
+        <span class="star" onclick="setStar('gait',3)">★</span>
+        <span class="star" onclick="setStar('gait',4)">★</span>
+        <span class="star" onclick="setStar('gait',5)">★</span>
+      </div>
+    </div>
+    <div class="field">
+      <span class="field-label" data-i18n="logMood">孩子状态</span>
+      <div class="star-row" id="stars-mood">
+        <span class="star" onclick="setStar('mood',1)">★</span>
+        <span class="star" onclick="setStar('mood',2)">★</span>
+        <span class="star" onclick="setStar('mood',3)">★</span>
+        <span class="star" onclick="setStar('mood',4)">★</span>
+        <span class="star" onclick="setStar('mood',5)">★</span>
+      </div>
+    </div>
+    <div class="field">
+      <span class="field-label" data-i18n="logNotes">备注</span>
+      <textarea id="log-notes" data-i18n-placeholder="logPlaceholder" placeholder="今天踢球时右脚明显稳了很多..."></textarea>
+    </div>
+    <button class="save-btn" onclick="saveLog()" data-i18n="saveLog">保存记录</button>
+  </div>
+
+</div><!-- end .main -->
+
+<!-- bottom nav -->
+<div class="bottomnav">
+  <div class="nav-item active" onclick="switchNav('analyze',this)" id="nav-analyze">
+    <div class="nav-icon">🎬</div>
+    <div class="nav-label" data-i18n="navAnalyze">视频分析</div>
+  </div>
+  <div class="nav-item" onclick="switchNav('history',this)" id="nav-history">
+    <div class="nav-icon">📊</div>
+    <div class="nav-label" data-i18n="navHistory">历史</div>
+  </div>
+  <div class="nav-item" onclick="switchNav('log',this)" id="nav-log">
+    <div class="nav-icon">📝</div>
+    <div class="nav-label" data-i18n="navLog">记录</div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── i18n ──────────────────────────────────────────────────────
+const T = {
+  zh: {
+    chooseSport:'选择今天的运动', recordVideo:'录制或上传视频（建议10–60秒）',
+    cameraHint:'侧面全身拍摄效果最佳', openCamera:'打开摄像头', uploadFile:'上传文件',
+    startRec:'开始录制', stopRec:'停止录制', cancel:'取消',
+    useVideo:'使用此视频', retake:'重拍', changeVideo:'更换视频',
+    analyzeBtn:'AI 动作分析', analyzeStart:'分析中...',
+    navAnalyze:'视频分析', navHistory:'历史', navLog:'记录',
+    historyTitle:'分析历史', logTitle:'今日记录',
+    logActivities:'完成的活动', logRightHand:'右手主动使用', logGait:'步态表现',
+    logMood:'孩子状态', logNotes:'备注', saveLog:'保存记录',
+    logPlaceholder:'今天踢球时右脚明显稳了很多...',
+    installText:'将此页面添加到主屏幕，像APP一样使用', installBtn:'添加',
+    toastSaved:'记录已保存', toastAnalyzing:'正在分析...',
+    steps:['视频上传中...','骨骼关键点提取','关节角度计算','步态与对称性分析','双手协调分析','生成评估报告'],
+    layer1:'第一层：身体结构（关节活动度）', layer2:'第二层：运动质量',
+    aiInsights:'AI 分析洞察', nextFocus:'下次训练重点',
+    overall:'综合评分', rehabVal:'康复价值',
+    shoulder:'肩关节', elbow:'肘关节', wrist:'手腕伸展', ankle:'踝关节',
+    symmetry:'左右对称性', gaitInward:'足内扣', rightHandUse:'右手主动使用',
+    bimanual:'双手协调', balance:'平衡控制',
+    emptyHistory:'完成第一次分析后记录会出现在这里',
+    sports:[
+      {id:'football',icon:'⚽',name:'足球'},
+      {id:'badminton',icon:'🏸',name:'羽毛球'},
+      {id:'basketball',icon:'🏀',name:'篮球'},
+      {id:'swimming',icon:'🏊',name:'游泳'},
+      {id:'drone',icon:'🛸',name:'无人机制作'},
+      {id:'electronics',icon:'🔧',name:'电子制作'},
+      {id:'walking',icon:'🚶',name:'行走训练'},
+      {id:'other',icon:'🎯',name:'其他'},
+    ],
+    logActs:['无人机制作','足球','篮球','游泳','电子制作','PT/OT训练','学校体育','视觉训练','其他'],
+  },
+  en: {
+    chooseSport:'Choose today\'s activity', recordVideo:'Record or upload video (10–60 sec recommended)',
+    cameraHint:'Best results with full-body side view', openCamera:'Open Camera', uploadFile:'Upload File',
+    startRec:'Start Recording', stopRec:'Stop Recording', cancel:'Cancel',
+    useVideo:'Use This Video', retake:'Retake', changeVideo:'Change Video',
+    analyzeBtn:'AI Motion Analysis', analyzeStart:'Analysing...',
+    navAnalyze:'Analysis', navHistory:'History', navLog:'Log',
+    historyTitle:'Analysis History', logTitle:'Daily Log',
+    logActivities:'Activities completed', logRightHand:'Right hand active use', logGait:'Gait performance',
+    logMood:'Child\'s mood & cooperation', logNotes:'Notes', saveLog:'Save Log',
+    logPlaceholder:'e.g. right foot much more stable during football today...',
+    installText:'Add to home screen to use like an app', installBtn:'Add',
+    toastSaved:'Log saved', toastAnalyzing:'Analysing...',
+    steps:['Uploading video...','Extracting skeleton keypoints','Calculating joint angles','Gait & symmetry analysis','Bimanual coordination analysis','Generating assessment report'],
+    layer1:'Layer 1: Body Structure (Joint ROM)', layer2:'Layer 2: Movement Quality',
+    aiInsights:'AI Insights', nextFocus:'Next Training Focus',
+    overall:'Overall Score', rehabVal:'Rehab Value',
+    shoulder:'Shoulder', elbow:'Elbow', wrist:'Wrist Extension', ankle:'Ankle',
+    symmetry:'L/R Symmetry', gaitInward:'Foot Inward Turn', rightHandUse:'Right Hand Use',
+    bimanual:'Bimanual Coord.', balance:'Balance Control',
+    emptyHistory:'Your analysis history will appear here after the first session',
+    sports:[
+      {id:'football',icon:'⚽',name:'Football'},
+      {id:'badminton',icon:'🏸',name:'Badminton'},
+      {id:'basketball',icon:'🏀',name:'Basketball'},
+      {id:'swimming',icon:'🏊',name:'Swimming'},
+      {id:'drone',icon:'🛸',name:'Drone Building'},
+      {id:'electronics',icon:'🔧',name:'Electronics'},
+      {id:'walking',icon:'🚶',name:'Walking Practice'},
+      {id:'other',icon:'🎯',name:'Other'},
+    ],
+    logActs:['Drone Building','Football','Basketball','Swimming','Electronics','PT/OT Session','PE at school','Vision Training','Other'],
+  },
+  fr: {
+    chooseSport:'Choisir l\'activité du jour', recordVideo:'Enregistrer ou télécharger une vidéo (10–60 sec)',
+    cameraHint:'Vue de côté plein corps recommandée', openCamera:'Ouvrir la caméra', uploadFile:'Télécharger',
+    startRec:'Commencer l\'enregistrement', stopRec:'Arrêter', cancel:'Annuler',
+    useVideo:'Utiliser cette vidéo', retake:'Reprendre', changeVideo:'Changer la vidéo',
+    analyzeBtn:'Analyse IA du mouvement', analyzeStart:'Analyse en cours...',
+    navAnalyze:'Analyse', navHistory:'Historique', navLog:'Journal',
+    historyTitle:'Historique des analyses', logTitle:'Journal du jour',
+    logActivities:'Activités réalisées', logRightHand:'Utilisation main droite', logGait:'Qualité de la marche',
+    logMood:'État et coopération', logNotes:'Notes', saveLog:'Enregistrer',
+    logPlaceholder:'Ex. pied droit beaucoup plus stable au foot aujourd\'hui...',
+    installText:'Ajouter à l\'écran d\'accueil pour utiliser comme une app', installBtn:'Ajouter',
+    toastSaved:'Journal enregistré', toastAnalyzing:'Analyse en cours...',
+    steps:['Téléchargement vidéo...','Extraction des points squelettiques','Calcul des angles articulaires','Analyse de la marche et symétrie','Analyse coordination bimanuelles','Génération du rapport'],
+    layer1:'Couche 1 : Structure corporelle (amplitude articulaire)', layer2:'Couche 2 : Qualité du mouvement',
+    aiInsights:'Insights IA', nextFocus:'Prochain objectif',
+    overall:'Score global', rehabVal:'Valeur rééducative',
+    shoulder:'Épaule', elbow:'Coude', wrist:'Poignet', ankle:'Cheville',
+    symmetry:'Symétrie G/D', gaitInward:'Varus du pied', rightHandUse:'Usage main droite',
+    bimanual:'Coordination bi-manuelle', balance:'Équilibre',
+    emptyHistory:'L\'historique apparaîtra ici après la première analyse',
+    sports:[
+      {id:'football',icon:'⚽',name:'Football'},
+      {id:'badminton',icon:'🏸',name:'Badminton'},
+      {id:'basketball',icon:'🏀',name:'Basketball'},
+      {id:'swimming',icon:'🏊',name:'Natation'},
+      {id:'drone',icon:'🛸',name:'Construction drone'},
+      {id:'electronics',icon:'🔧',name:'Électronique'},
+      {id:'walking',icon:'🚶',name:'Marche'},
+      {id:'other',icon:'🎯',name:'Autre'},
+    ],
+    logActs:['Construction drone','Football','Basketball','Natation','Électronique','Séance PT/OT','Sport scolaire','Entraînement visuel','Autre'],
+  }
+};
+
+let lang = localStorage.getItem('cp_lang') || 'zh';
+let selectedSport = null;
+let videoFile = null;
+let videoBlob = null;
+let mediaStream = null;
+let mediaRecorder = null;
+let recChunks = [];
+let recInterval = null;
+let recSeconds = 0;
+let starState = {hand:0, gait:0, mood:0};
+let history = JSON.parse(localStorage.getItem('cp_analysis_history') || '[]');
+let deferredInstall = null;
+
+// ── PWA install ───────────────────────────────────────────────
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredInstall = e;
+  document.getElementById('install-banner').style.display = 'flex';
+});
+window.addEventListener('appinstalled', () => {
+  document.getElementById('install-banner').style.display = 'none';
+});
+function installPWA() {
+  if (deferredInstall) { deferredInstall.prompt(); deferredInstall = null; }
+}
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
+
+// ── Language ──────────────────────────────────────────────────
+function setLang(l, btn) {
+  lang = l;
+  localStorage.setItem('cp_lang', l);
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  applyTranslations();
+  buildSportChips();
+  buildLogActivities();
+  renderHistory();
+}
+
+function t(key) { return (T[lang] || T.zh)[key] || T.zh[key] || key; }
+
+function applyTranslations() {
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const k = el.dataset.i18n;
+    el.textContent = t(k);
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    el.placeholder = t(el.dataset.i18nPlaceholder);
+  });
+  document.getElementById('install-text').textContent = t('installText');
+  document.getElementById('install-btn').textContent = t('installBtn');
+}
+
+// ── Sports ────────────────────────────────────────────────────
+function buildSportChips() {
+  const sports = t('sports');
+  const scroll = document.getElementById('sport-scroll');
+  scroll.innerHTML = sports.map((s,i) =>
+    `<div class="sport-chip${i===0?' sel':''}" onclick="selectSport(this,'${s.id}','${s.icon}','${s.name}')">
+      <span class="sport-chip-icon">${s.icon}</span>
+      <span class="sport-chip-name">${s.name}</span>
+    </div>`
+  ).join('');
+  const first = sports[0];
+  selectedSport = {id:first.id, icon:first.icon, name:first.name};
+}
+
+function selectSport(el, id, icon, name) {
+  document.querySelectorAll('.sport-chip').forEach(c => c.classList.remove('sel'));
+  el.classList.add('sel');
+  selectedSport = {id, icon, name};
+}
+
+// ── Camera ────────────────────────────────────────────────────
+async function startCamera() {
+  try {
+    mediaStream = await navigator.mediaDevices.getUserMedia({
+      video:{facingMode:'environment', width:{ideal:1280}, height:{ideal:720}},
+      audio:false
+    });
+    const vid = document.getElementById('live-video');
+    vid.srcObject = mediaStream;
+    vid.style.display = 'block';
+    document.getElementById('cam-placeholder').style.display = 'none';
+    document.getElementById('cam-controls-idle').style.display = 'none';
+    document.getElementById('cam-controls-live').style.display = 'flex';
+    vid.play();
+  } catch(e) {
+    showToast('⚠️ ' + (e.name === 'NotAllowedError' ? 'Camera permission denied' : e.message));
+  }
+}
+
+function stopCamera() {
+  if (mediaStream) { mediaStream.getTracks().forEach(t => t.stop()); mediaStream = null; }
+  const vid = document.getElementById('live-video');
+  vid.style.display = 'none'; vid.srcObject = null;
+  document.getElementById('cam-placeholder').style.display = 'flex';
+  document.getElementById('cam-controls-idle').style.display = 'flex';
+  document.getElementById('cam-controls-live').style.display = 'none';
+  document.getElementById('cam-controls-recording').style.display = 'none';
+}
+
+function startRecording() {
+  recChunks = []; recSeconds = 0;
+  const options = MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
+    ? {mimeType:'video/webm;codecs=vp9'}
+    : MediaRecorder.isTypeSupported('video/webm') ? {mimeType:'video/webm'} : {};
+  mediaRecorder = new MediaRecorder(mediaStream, options);
+  mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recChunks.push(e.data); };
+  mediaRecorder.onstop = () => {
+    const mime = mediaRecorder.mimeType || 'video/webm';
+    videoBlob = new Blob(recChunks, {type: mime});
+    videoFile = new File([videoBlob], 'recording.webm', {type: mime});
+    showPreview(URL.createObjectURL(videoBlob));
+  };
+  mediaRecorder.start(100);
+  clearInterval(recInterval);
+  recInterval = setInterval(() => {
+    recSeconds++;
+    const m = Math.floor(recSeconds/60);
+    const s = recSeconds % 60;
+    document.getElementById('rec-timer').textContent = m + ':' + String(s).padStart(2,'0');
+    if (recSeconds >= 90) stopRecording();
+  }, 1000);
+  document.getElementById('cam-controls-live').style.display = 'none';
+  document.getElementById('cam-controls-recording').style.display = 'flex';
+}
+
+function stopRecording() {
+  clearInterval(recInterval);
+  if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+  if (mediaStream) { mediaStream.getTracks().forEach(t => t.stop()); mediaStream = null; }
+  document.getElementById('live-video').style.display = 'none';
+  document.getElementById('cam-controls-recording').style.display = 'none';
+}
+
+function showPreview(url) {
+  const pv = document.getElementById('preview-video');
+  pv.src = url; pv.style.display = 'block';
+  document.getElementById('cam-placeholder').style.display = 'none';
+  document.getElementById('cam-controls-recording').style.display = 'none';
+  document.getElementById('cam-controls-preview').style.display = 'flex';
+}
+
+function confirmVideo() {
+  document.getElementById('cam-controls-preview').style.display = 'none';
+  document.getElementById('cam-controls-confirmed').style.display = 'flex';
+  document.getElementById('analyze-btn').disabled = false;
+}
+
+function retakeVideo() {
+  videoFile = null; videoBlob = null;
+  const pv = document.getElementById('preview-video');
+  pv.src = ''; pv.style.display = 'none';
+  document.getElementById('cam-placeholder').style.display = 'flex';
+  document.getElementById('cam-controls-preview').style.display = 'none';
+  document.getElementById('cam-controls-confirmed').style.display = 'none';
+  document.getElementById('cam-controls-idle').style.display = 'flex';
+  document.getElementById('analyze-btn').disabled = true;
+  document.getElementById('results-wrap').innerHTML = '';
+}
+
+function handleFile(f) {
+  if (!f) return;
+  videoFile = f;
+  showPreview(URL.createObjectURL(f));
+}
+
+// ── Analysis ──────────────────────────────────────────────────
+async function startAnalysis() {
+  const btn = document.getElementById('analyze-btn');
+  btn.disabled = true;
+  btn.querySelector('[data-i18n]').textContent = t('analyzeStart');
+
+  const pw = document.getElementById('progress-wrap');
+  pw.style.display = 'flex';
+  document.getElementById('results-wrap').innerHTML = '';
+  pw.innerHTML = t('steps').map((s,i) =>
+    `<div class="step" id="step-${i}"><div class="step-dot"></div><span class="step-txt">${s}</span></div>`
+  ).join('');
+
+  const delays = [400, 900, 1600, 2400, 3300, 4200];
+  let imageBase64 = null;
+  if (videoFile) imageBase64 = await extractFrame(videoFile);
+
+  for (let i = 0; i < 6; i++) {
+    await sleep(delays[i]);
+    if (i > 0) { document.getElementById('step-'+(i-1)).classList.remove('active'); document.getElementById('step-'+(i-1)).classList.add('done'); }
+    document.getElementById('step-'+i).classList.add('active');
+  }
+
+  try {
+    const result = await callAPI(imageBase64);
+    await sleep(500);
+    for (let i = 0; i < 6; i++) { const s = document.getElementById('step-'+i); s.classList.remove('active'); s.classList.add('done'); }
+    await sleep(300);
+    pw.style.display = 'none';
+    renderResults(result);
+    saveHistory(result);
+  } catch(e) {
+    pw.style.display = 'none';
+    document.getElementById('results-wrap').innerHTML =
+      `<div class="ins alert"><div class="ins-head">Error</div><div class="ins-body">${e.message}</div></div>`;
+  }
+
+  btn.disabled = false;
+  btn.querySelector('[data-i18n]').textContent = t('analyzeBtn');
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+async function extractFrame(file) {
+  return new Promise(resolve => {
+    const video = document.createElement('video');
+    const url = URL.createObjectURL(file);
+    video.src = url; video.currentTime = 1;
+    video.oncanplay = () => {
+      const c = document.createElement('canvas');
+      c.width = 640; c.height = 360;
+      c.getContext('2d').drawImage(video, 0, 0, 640, 360);
+      URL.revokeObjectURL(url);
+      resolve(c.toDataURL('image/jpeg', 0.82).split(',')[1]);
+    };
+    video.onerror = () => { URL.revokeObjectURL(url); resolve(null); };
+  });
+}
+
+async function callAPI(imageBase64) {
+  const sport = selectedSport?.name || '运动';
+  const langInstructions = {
+    zh: '请用中文输出所有note、insights和next_focus字段。',
+    en: 'Please output all note, insights and next_focus fields in English.',
+    fr: 'Veuillez écrire tous les champs note, insights et next_focus en français.'
+  };
+
+  const system = `You are an expert AI motion analyst specialising in paediatric cerebral palsy rehabilitation. Analyse the child's movement and output ONLY valid JSON with this exact structure:
+{"overall":number,"layer1":{"shoulder":{"score":number,"left":number,"right":number,"note":"string"},"elbow":{"score":number,"left":number,"right":number,"note":"string"},"wrist":{"score":number,"left":number,"right":number,"note":"string"},"ankle":{"score":number,"left":number,"right":number,"note":"string"}},"layer2":{"symmetry":{"score":number,"note":"string"},"gait_inward":{"score":number,"angle":number,"note":"string"},"right_hand_use":{"score":number,"pct":number,"note":"string"},"bimanual":{"score":number,"note":"string"},"balance":{"score":number,"note":"string"}},"insights":[{"type":"good","title":"string","body":"string"},{"type":"warn","title":"string","body":"string"},{"type":"alert","title":"string","body":"string"}],"next_focus":"string","rehab_value":number}
+Scores 0-100. The child is 8 years old with suspected right-sided hemiplegic CP: right hand underuse, right foot inward gait, right eye exotropia. ${langInstructions[lang]}`;
+
+  const content = imageBase64
+    ? [{type:'image',source:{type:'base64',media_type:'image/jpeg',data:imageBase64}},
+       {type:'text',text:`Activity: ${sport}. Analyse this frame for the 8-year-old child with right hemiplegia. Output JSON only.`}]
+    : [{type:'text',text:`Activity: ${sport}. No video uploaded — generate a representative assessment for an 8-year-old with right hemiplegic CP doing ${sport}, to help the parent understand which metrics to watch. Output JSON only.`}];
+
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({model:'claude-sonnet-4-6', max_tokens:1000, system, messages:[{role:'user',content}]})
+  });
+  if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e.error?.message || 'API error'); }
+  const data = await res.json();
+  const raw = data.content[0].text.trim().replace(/```json|```/g,'').trim();
+  return JSON.parse(raw);
+}
+
+// ── Render results ────────────────────────────────────────────
+function renderResults(r) {
+  const sport = selectedSport;
+  const date = new Date().toLocaleDateString(lang === 'zh' ? 'zh-CN' : lang === 'fr' ? 'fr-CA' : 'en-CA', {month:'short', day:'numeric'});
+  const sc = n => n >= 70 ? 'score-hi' : n >= 50 ? 'score-md' : 'score-lo';
+  const fi = n => n >= 70 ? 'fill-hi' : n >= 50 ? 'fill-md' : 'fill-lo';
+
+  const card = (name, score, detail) => `
+    <div class="sc">
+      <div class="sc-top"><span class="sc-name">${name}</span><span class="sc-num ${sc(score)}">${score}</span></div>
+      <div class="sc-bar"><div class="sc-fill ${fi(score)}" style="width:0%" data-w="${score}%"></div></div>
+      <div class="sc-note">${detail}</div>
+    </div>`;
+
+  const l1 = r.layer1, l2 = r.layer2;
+  const insHtml = (r.insights||[]).map(i =>
+    `<div class="ins ${i.type}"><div class="ins-head">${i.title}</div><div class="ins-body">${i.body}</div></div>`
+  ).join('');
+
+  document.getElementById('results-wrap').innerHTML = `
+    <div class="result-hero">
+      <div>
+        <div class="result-sport">${sport.icon} ${sport.name}</div>
+        <div class="result-date">${date} · ${t('rehabVal')} ${r.rehab_value}</div>
+      </div>
+      <div class="big-score">
+        <div class="big-num ${sc(r.overall)}">${r.overall}</div>
+        <div class="big-lbl">${t('overall')}</div>
+      </div>
+    </div>
+
+    <div class="layer-title">🦴 ${t('layer1')}</div>
+    <div class="score-grid">
+      ${card(t('shoulder'), l1.shoulder.score, `L ${l1.shoulder.left}° / R ${l1.shoulder.right}° · ${l1.shoulder.note}`)}
+      ${card(t('elbow'),    l1.elbow.score,    `L ${l1.elbow.left}° / R ${l1.elbow.right}° · ${l1.elbow.note}`)}
+      ${card(t('wrist'),    l1.wrist.score,    `L ${l1.wrist.left}° / R ${l1.wrist.right}° · ${l1.wrist.note}`)}
+      ${card(t('ankle'),    l1.ankle.score,    `L ${l1.ankle.left}° / R ${l1.ankle.right}° · ${l1.ankle.note}`)}
+    </div>
+
+    <div class="layer-title">🏃 ${t('layer2')}</div>
+    <div class="score-grid">
+      ${card(t('symmetry'),    l2.symmetry.score,     l2.symmetry.note)}
+      ${card(t('gaitInward'),  l2.gait_inward.score,  `${l2.gait_inward.angle}° · ${l2.gait_inward.note}`)}
+      ${card(t('rightHandUse'),l2.right_hand_use.score,`${l2.right_hand_use.pct}% · ${l2.right_hand_use.note}`)}
+      ${card(t('bimanual'),    l2.bimanual.score,     l2.bimanual.note)}
+      ${card(t('balance'),     l2.balance.score,      l2.balance.note)}
+    </div>
+
+    <div class="layer-title">💡 ${t('aiInsights')}</div>
+    <div class="insight-list">${insHtml}</div>
+    <div class="ins next" style="margin-top:6px">
+      <div class="ins-head">${t('nextFocus')}</div>
+      <div class="ins-body">${r.next_focus}</div>
+    </div>
+  `;
+
+  // animate bars
+  requestAnimationFrame(() => {
+    document.querySelectorAll('.sc-fill[data-w]').forEach(el => {
+      const w = el.dataset.w;
+      setTimeout(() => el.style.width = w, 80);
+    });
+  });
+  document.getElementById('main').scrollTo({top: document.getElementById('results-wrap').offsetTop - 20, behavior:'smooth'});
+}
+
+// ── History ───────────────────────────────────────────────────
+function saveHistory(r) {
+  const rec = {
+    date: new Date().toISOString(),
+    sport: {...selectedSport},
+    overall: r.overall,
+    rehab: r.rehab_value,
+    right_hand: r.layer2.right_hand_use.pct,
+    gait_angle: r.layer2.gait_inward.angle,
+    symmetry: r.layer2.symmetry.score
+  };
+  history.unshift(rec);
+  if (history.length > 40) history = history.slice(0,40);
+  localStorage.setItem('cp_analysis_history', JSON.stringify(history));
+}
+
+function renderHistory() {
+  const list = document.getElementById('hist-list');
+  if (!history.length) {
+    list.innerHTML = `<div class="empty-state">${t('emptyHistory')}</div>`;
+    return;
+  }
+  list.innerHTML = history.map((r,i) => {
+    const prev = history[i+1];
+    const delta = prev ? r.overall - prev.overall : null;
+    const d = new Date(r.date);
+    const dateStr = d.toLocaleDateString(lang==='zh'?'zh-CN':lang==='fr'?'fr-CA':'en-CA', {month:'short', day:'numeric'});
+    const dColor = delta === null ? '' : delta > 0 ? 'color:var(--green)' : delta < 0 ? 'color:var(--red-mid)' : '';
+    const dText = delta === null ? '' : (delta > 0 ? '↑' : delta < 0 ? '↓' : '→') + Math.abs(delta);
+    return `<div class="hist-item">
+      <div class="hist-top">
+        <div><div class="hist-sport">${r.sport.icon} ${r.sport.name}</div><div class="hist-date">${dateStr}</div></div>
+        <div style="text-align:right">
+          <div class="hist-score-num ${r.overall>=70?'score-hi':r.overall>=50?'score-md':'score-lo'}">${r.overall}</div>
+          <div style="font-size:11px;font-weight:500;${dColor}">${dText}</div>
+        </div>
+      </div>
+      <div class="hist-bars">
+        <div class="hbar-row"><span class="hbar-lbl">${t('rightHandUse')}</span><div class="hbar-track"><div class="hbar-fill" style="width:${r.right_hand}%"></div></div><span class="hbar-val">${r.right_hand}%</span></div>
+        <div class="hbar-row"><span class="hbar-lbl">${t('symmetry')}</span><div class="hbar-track"><div class="hbar-fill" style="width:${r.symmetry}%;background:var(--blue-mid)"></div></div><span class="hbar-val">${r.symmetry}</span></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── Log panel ─────────────────────────────────────────────────
+function buildLogActivities() {
+  const acts = t('logActs');
+  document.getElementById('log-activities').innerHTML = acts.map(a =>
+    `<button class="chk" onclick="this.classList.toggle('on')">${a}</button>`
+  ).join('');
+}
+
+function setStar(type, n) {
+  starState[type] = n;
+  document.querySelectorAll(`#stars-${type} .star`).forEach((s,i) => s.classList.toggle('lit', i < n));
+}
+
+function saveLog() {
+  const checked = Array.from(document.querySelectorAll('#log-activities .chk.on')).map(b => b.textContent);
+  const notes = document.getElementById('log-notes').value;
+  const rec = { date: new Date().toISOString(), activities: checked, stars: {...starState}, notes };
+  const logs = JSON.parse(localStorage.getItem('cp_daily_logs') || '[]');
+  logs.unshift(rec);
+  localStorage.setItem('cp_daily_logs', JSON.stringify(logs.slice(0, 90)));
+  showToast(t('toastSaved'));
+  document.querySelectorAll('#log-activities .chk').forEach(b => b.classList.remove('on'));
+  document.getElementById('log-notes').value = '';
+  ['hand','gait','mood'].forEach(k => { starState[k] = 0; document.querySelectorAll(`#stars-${k} .star`).forEach(s => s.classList.remove('lit')); });
+}
+
+// ── Nav ───────────────────────────────────────────────────────
+function switchNav(id, el) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('panel-'+id).classList.add('active');
+  el.classList.add('active');
+  document.getElementById('main').scrollTo({top:0});
+  if (id === 'history') renderHistory();
+}
+
+// ── Toast ─────────────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// ── Init ──────────────────────────────────────────────────────
+function init() {
+  applyTranslations();
+  buildSportChips();
+  buildLogActivities();
+  // restore lang buttons
+  document.querySelectorAll('.lang-btn').forEach(b => {
+    if (b.textContent.toLowerCase().replace('en','en').includes(lang === 'zh' ? '中' : lang)) b.classList.add('active');
+    else b.classList.remove('active');
+  });
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+  const langMap = {'zh':'中文','en':'EN','fr':'FR'};
+  document.querySelectorAll('.lang-btn').forEach(b => {
+    if (b.textContent === langMap[lang]) b.classList.add('active');
+  });
+}
+
+init();
+</script>
+</body>
+</html>
