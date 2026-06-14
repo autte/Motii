@@ -4,862 +4,1027 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="CP Growth">
-<meta name="theme-color" content="#1a1916">
-<link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="icons/icon-192.png">
-<title>CP Growth OS</title>
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="theme-color" content="#0F1A14">
+<title>CP Growth OS · 晨宇</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{
-  --bg:#f8f7f4;--card:#fff;--border:#e8e4dd;
-  --text:#1a1916;--muted:#7a7672;--hint:#b0aba4;
-  --green:#1a7a52;--green-bg:#e8f5ee;--green-mid:#2ea066;
-  --amber:#8a5c00;--amber-bg:#fef3d8;--amber-mid:#d4920a;
-  --red:#8a2020;--red-bg:#fdeaea;--red-mid:#d44040;
-  --blue:#1a4a8a;--blue-bg:#e8f0fb;--blue-mid:#2e6ed4;
-  --purple:#4a1a8a;--purple-bg:#f0ebfd;--purple-mid:#7e4ed4;
-  --safe-top: env(safe-area-inset-top, 0px);
-  --safe-bot: env(safe-area-inset-bottom, 0px);
+  --bg:#0F1A14;--nav:#1C3A28;--card:#f8f9f7;--card2:#eef2ee;
+  --em:#2E7D52;--mint:#6FCF97;--amber:#F2C94C;--coral:#EB5757;
+  --text:#0F1A14;--muted:#4A5568;--dim:#718096;--white:#f8f9f7;
+  --border:#d4e4da;--safe-bot:env(safe-area-inset-bottom,0px);
+  --safe-top:env(safe-area-inset-top,0px);
 }
-html,body{height:100%;overflow:hidden;background:var(--bg)}
-body{font-family:-apple-system,'Helvetica Neue',sans-serif;font-size:14px;line-height:1.5;color:var(--text);display:flex;flex-direction:column}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,'Helvetica Neue',sans-serif;overflow:hidden}
+body{display:flex;flex-direction:column}
 
-/* status bar spacer */
-.status-bar{height:var(--safe-top);background:var(--bg);flex-shrink:0}
+/* ── Status bar ── */
+.sb{height:var(--safe-top);background:var(--bg);flex-shrink:0}
 
-/* top header */
-.topbar{display:flex;align-items:center;justify-content:space-between;padding:10px 16px 8px;background:var(--bg);border-bottom:0.5px solid var(--border);flex-shrink:0}
-.logo{font-size:16px;font-weight:600;letter-spacing:-.3px}.logo span{color:var(--green-mid)}
-.lang-switch{display:flex;gap:3px;background:#ede9e2;padding:2px;border-radius:7px}
-.lang-btn{padding:3px 9px;border:none;background:none;font-size:11px;font-weight:500;color:var(--muted);border-radius:5px;cursor:pointer;transition:all .12s}
-.lang-btn.active{background:#fff;color:var(--text);box-shadow:0 1px 2px rgba(0,0,0,.1)}
+/* ── Top bar ── */
+.topbar{background:var(--bg);padding:10px 16px 8px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.logo{font-size:15px;font-weight:700;color:var(--white);letter-spacing:-.3px}
+.logo em{color:var(--mint);font-style:normal}
+.lang-sw{display:flex;gap:2px;background:rgba(255,255,255,.1);padding:2px;border-radius:6px}
+.lang-sw button{background:none;border:none;color:rgba(255,255,255,.5);font-size:11px;font-weight:500;padding:3px 8px;border-radius:4px;cursor:pointer;transition:all .15s}
+.lang-sw button.on{background:rgba(255,255,255,.15);color:var(--white)}
 
-/* main scroll area */
-.main{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding:0 0 calc(60px + var(--safe-bot))}
+/* ── Scroll area ── */
+.main{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:calc(60px + var(--safe-bot))}
 
-/* bottom nav */
-.bottomnav{position:fixed;bottom:0;left:0;right:0;height:calc(56px + var(--safe-bot));background:var(--card);border-top:0.5px solid var(--border);display:flex;align-items:flex-start;padding-top:8px;z-index:100}
-.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:0 4px}
-.nav-icon{font-size:20px;line-height:1}
-.nav-label{font-size:10px;font-weight:500;color:var(--muted);transition:color .15s}
-.nav-item.active .nav-label{color:var(--green-mid)}
-.nav-item.active .nav-icon{transform:scale(1.1)}
+/* ── Bottom nav ── */
+.bnav{position:fixed;bottom:0;left:0;right:0;height:calc(56px + var(--safe-bot));background:var(--nav);border-top:1px solid rgba(110,207,151,.15);display:flex;align-items:flex-start;padding-top:6px;z-index:100}
+.ni{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;padding:0 2px}
+.ni-ic{font-size:18px;line-height:1;transition:transform .15s}
+.ni-lb{font-size:9px;font-weight:500;color:rgba(255,255,255,.4);transition:color .15s;text-align:center;line-height:1.2}
+.ni.on .ni-lb{color:var(--mint)}
+.ni.on .ni-ic{transform:scale(1.15)}
+.ni-dot{width:4px;height:4px;border-radius:50%;background:var(--coral);position:absolute;top:4px;right:calc(50% - 12px);display:none}
+.ni.alert .ni-dot{display:block}
 
-/* panels */
-.panel{display:none;padding:16px}.panel.active{display:block}
+/* ── Panels ── */
+.panel{display:none;padding:12px 14px}.panel.on{display:block}
 
-/* sport selector */
-.sport-scroll{display:flex;gap:8px;overflow-x:auto;padding:0 16px 4px;margin:0 -16px;scrollbar-width:none}
-.sport-scroll::-webkit-scrollbar{display:none}
-.sport-chip{flex-shrink:0;display:flex;align-items:center;gap:6px;padding:8px 14px;background:var(--card);border:0.5px solid var(--border);border-radius:20px;cursor:pointer;transition:all .12s;white-space:nowrap}
-.sport-chip.sel{background:var(--green-bg);border-color:var(--green-mid)}
-.sport-chip-icon{font-size:16px}
-.sport-chip-name{font-size:13px;font-weight:500;color:var(--muted)}
-.sport-chip.sel .sport-chip-name{color:var(--green)}
+/* ── Section headers ── */
+.sec-head{font-size:11px;font-weight:600;color:var(--mint);text-transform:uppercase;letter-spacing:.06em;margin:16px 0 8px;display:flex;align-items:center;gap:6px}
+.sec-head::after{content:'';flex:1;height:1px;background:rgba(110,207,151,.2)}
 
-/* camera area */
-.camera-section{margin-top:12px}
-.camera-box{background:var(--card);border:0.5px solid var(--border);border-radius:14px;overflow:hidden;position:relative;aspect-ratio:16/9}
-#live-video{width:100%;height:100%;object-fit:cover;display:none;background:#000}
-#preview-video{width:100%;height:100%;object-fit:cover;display:none;background:#000}
-.camera-placeholder{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:#f3f0ea}
-.cam-big-icon{font-size:40px;opacity:.3}
-.cam-placeholder-text{font-size:13px;color:var(--hint)}
-.camera-controls{display:flex;gap:8px;margin-top:10px}
-.cam-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:12px;border-radius:10px;border:0.5px solid var(--border);background:var(--card);font-size:13px;font-weight:500;color:var(--text);cursor:pointer;transition:all .12s;-webkit-appearance:none}
-.cam-btn:active{transform:scale(.97)}
-.cam-btn.primary{background:var(--text);color:#fff;border-color:var(--text)}
-.cam-btn.red{background:var(--red-mid);color:#fff;border-color:var(--red-mid)}
-.cam-btn.green{background:var(--green-mid);color:#fff;border-color:var(--green-mid)}
-.cam-btn:disabled{opacity:.35;cursor:not-allowed}
-.rec-dot{width:8px;height:8px;border-radius:50%;background:#fff;animation:blink 1s infinite}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
-.rec-timer{font-size:11px;font-weight:600;font-variant-numeric:tabular-nums}
+/* ── Cards ── */
+.card{background:var(--card);border-radius:12px;padding:12px 14px;margin-bottom:8px}
+.card2{background:var(--card2)}
+.card-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px}
+.card-sub{font-size:11px;color:var(--muted)}
 
-/* upload alt */
-.upload-row{display:flex;align-items:center;gap:8px;margin-top:8px}
-.divider-line{flex:1;height:0.5px;background:var(--border)}
-.divider-text{font-size:11px;color:var(--hint)}
+/* ── KPI rings (Dashboard) ── */
+.kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.kpi-card{background:var(--card);border-radius:12px;padding:12px 8px;text-align:center;cursor:pointer;transition:transform .12s}
+.kpi-card:active{transform:scale(.97)}
+.ring-wrap{position:relative;width:64px;height:64px;margin:0 auto 6px}
+.ring-svg{transform:rotate(-90deg)}
+.ring-bg{fill:none;stroke:#e8f0e8;stroke-width:5}
+.ring-val{fill:none;stroke-width:5;stroke-linecap:round;transition:stroke-dashoffset 1s ease}
+.ring-label{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--text)}
+.kpi-name{font-size:10px;font-weight:500;color:var(--muted);line-height:1.3}
+.kpi-badge{display:inline-block;font-size:9px;font-weight:600;padding:2px 6px;border-radius:10px;margin-top:3px}
+.badge-ok{background:#e8f5ee;color:#1a7a52}
+.badge-warn{background:#fef3d8;color:#8a5c00}
+.badge-alert{background:#fdeaea;color:#8a2020}
 
-/* analyze btn */
-.analyze-btn{width:100%;margin-top:12px;padding:14px;background:var(--text);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;transition:opacity .15s;letter-spacing:-.2px}
-.analyze-btn:active{transform:scale(.99)}
-.analyze-btn:disabled{opacity:.35;cursor:not-allowed}
+/* ── Alert banner ── */
+.alert-banner{background:linear-gradient(135deg,#1C3A28,#0F2A1E);border:1px solid rgba(110,207,151,.25);border-radius:10px;padding:12px 14px;margin-bottom:12px}
+.alert-title{font-size:12px;font-weight:600;color:var(--mint);margin-bottom:6px}
+.alert-item{font-size:12px;color:rgba(248,249,247,.8);padding:3px 0;display:flex;gap:8px}
+.alert-item::before{content:'→';color:var(--mint);flex-shrink:0}
 
-/* progress */
-.progress-wrap{margin-top:12px;display:flex;flex-direction:column;gap:6px}
-.step{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--card);border:0.5px solid var(--border);border-radius:8px;transition:all .3s}
-.step.active{border-color:var(--blue-mid);background:var(--blue-bg)}
-.step.done{border-color:var(--green-mid);background:var(--green-bg)}
-.step-dot{width:7px;height:7px;border-radius:50%;background:var(--hint);flex-shrink:0;transition:background .3s}
-.step.active .step-dot{background:var(--blue-mid);animation:pulse 1s infinite}
-.step.done .step-dot{background:var(--green-mid)}
-.step-txt{font-size:12px;color:var(--muted)}
-.step.active .step-txt{color:var(--blue);font-weight:500}
-.step.done .step-txt{color:var(--green)}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+/* ── Week advice ── */
+.advice-list{display:flex;flex-direction:column;gap:6px}
+.advice-item{background:var(--card);border-radius:10px;padding:10px 12px;display:flex;gap:10px;align-items:flex-start}
+.advice-num{width:20px;height:20px;border-radius:50%;background:var(--em);color:var(--white);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.advice-body{flex:1}
+.advice-head{font-size:12px;font-weight:600;color:var(--text);margin-bottom:2px}
+.advice-text{font-size:11px;color:var(--muted);line-height:1.5}
 
-/* results */
-.result-hero{display:flex;align-items:center;justify-content:space-between;padding:14px;background:var(--card);border:0.5px solid var(--border);border-radius:14px;margin-bottom:10px}
-.result-sport{font-size:15px;font-weight:600}
-.result-date{font-size:11px;color:var(--muted);margin-top:2px}
-.big-score{text-align:right}
-.big-num{font-size:36px;font-weight:600;line-height:1}
-.big-lbl{font-size:10px;color:var(--muted);margin-top:2px}
-.score-hi{color:var(--green-mid)}.score-md{color:var(--amber-mid)}.score-lo{color:var(--red-mid)}
+/* ── Timeline ── */
+.tl-item{display:flex;gap:12px;margin-bottom:4px}
+.tl-line{display:flex;flex-direction:column;align-items:center;flex-shrink:0}
+.tl-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:3px}
+.tl-connector{flex:1;width:2px;background:rgba(110,207,151,.2);margin:2px 0}
+.tl-content{background:var(--card);border-radius:10px;padding:10px 12px;margin-bottom:4px;flex:1}
+.tl-date{font-size:10px;font-weight:600;color:var(--mint);margin-bottom:3px}
+.tl-place{font-size:12px;font-weight:600;color:var(--text)}
+.tl-find{font-size:11px;color:var(--muted);margin-top:3px;line-height:1.4}
+.tl-tag{display:inline-block;font-size:9px;font-weight:500;padding:2px 6px;border-radius:6px;margin-top:5px}
+.tag-motor{background:#e8f5ee;color:#1a7a52}
+.tag-eye{background:#e8f0fb;color:#1a4a8a}
+.tag-ear{background:#f0ebfd;color:#4a1a8a}
 
-.layer-title{font-size:11px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin:14px 0 8px;display:flex;align-items:center;gap:5px}
-.score-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
-.sc{background:var(--card);border:0.5px solid var(--border);border-radius:10px;padding:10px 12px}
-.sc-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
-.sc-name{font-size:12px;font-weight:500;line-height:1.3;flex:1;margin-right:8px}
-.sc-num{font-size:17px;font-weight:600}
-.sc-bar{height:4px;background:#edeae4;border-radius:2px;overflow:hidden;margin-bottom:5px}
-.sc-fill{height:100%;border-radius:2px;transition:width 1s ease}
-.fill-hi{background:var(--green-mid)}.fill-md{background:var(--amber-mid)}.fill-lo{background:var(--red-mid)}
-.sc-note{font-size:10px;color:var(--muted);line-height:1.35}
+/* ── Metric rows ── */
+.metric-row{background:var(--card);border-radius:10px;padding:10px 12px;margin-bottom:6px}
+.mr-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.mr-name{font-size:12px;font-weight:600;color:var(--text);flex:1;margin-right:8px}
+.mr-pri{font-size:9px;font-weight:600;padding:2px 7px;border-radius:10px}
+.pri-red{background:#fdeaea;color:#8a2020}
+.pri-amber{background:#fef3d8;color:#8a5c00}
+.pri-green{background:#e8f5ee;color:#1a7a52}
+.mr-bar{height:5px;background:#e8f0e8;border-radius:3px;overflow:hidden;margin-bottom:5px}
+.mr-fill{height:100%;border-radius:3px;transition:width 1s ease}
+.fill-red{background:var(--coral)}
+.fill-amber{background:var(--amber)}
+.fill-green{background:var(--mint)}
+.mr-meta{display:flex;justify-content:space-between;font-size:10px;color:var(--muted)}
+.mr-target{font-size:10px;font-weight:600;color:var(--em)}
 
-.insight-list{display:flex;flex-direction:column;gap:6px;margin-top:10px}
-.ins{background:var(--card);border:0.5px solid var(--border);border-radius:10px;padding:10px 12px}
-.ins.good{border-left:3px solid var(--green-mid)}
-.ins.warn{border-left:3px solid var(--amber-mid)}
-.ins.alert{border-left:3px solid var(--red-mid)}
-.ins.next{border-left:3px solid var(--purple-mid);background:var(--purple-bg)}
-.ins-head{font-size:11px;font-weight:500;color:var(--muted);margin-bottom:3px}
-.ins-body{font-size:13px;line-height:1.5}
+/* ── Training cards ── */
+.train-card{background:var(--card);border-radius:12px;padding:12px 14px;margin-bottom:8px;border-left:3px solid var(--em)}
+.train-card.eye{border-left-color:#2e6ed4}
+.train-card.ear{border-left-color:#7e4ed4}
+.train-card.hand{border-left-color:var(--amber)}
+.train-card.sport{border-left-color:var(--mint)}
+.tc-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px}
+.tc-name{font-size:13px;font-weight:600;color:var(--text)}
+.tc-dose{font-size:10px;font-weight:500;background:#e8f5ee;color:#1a7a52;padding:3px 8px;border-radius:20px;white-space:nowrap}
+.tc-target{font-size:11px;color:var(--muted);margin-bottom:5px}
+.tc-method{font-size:11px;color:var(--text);line-height:1.5;margin-bottom:5px}
+.tc-warn{font-size:10px;color:var(--coral);background:#fdeaea;padding:4px 8px;border-radius:6px;margin-top:4px}
+.tc-note{font-size:10px;color:var(--muted)}
 
-/* history panel */
-.hist-item{background:var(--card);border:0.5px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:7px}
-.hist-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
-.hist-sport{font-size:13px;font-weight:600}
-.hist-score-num{font-size:20px;font-weight:600}
-.hist-date{font-size:11px;color:var(--muted)}
-.hist-bars{display:flex;flex-direction:column;gap:4px}
-.hbar-row{display:flex;align-items:center;gap:6px}
-.hbar-lbl{font-size:10px;color:var(--muted);min-width:64px}
-.hbar-track{flex:1;height:4px;background:#edeae4;border-radius:2px;overflow:hidden}
-.hbar-fill{height:100%;border-radius:2px;background:var(--green-mid);transition:width .8s ease}
-.hbar-val{font-size:10px;color:var(--muted);min-width:28px;text-align:right}
+/* ── ROI bars ── */
+.roi-card{background:var(--card);border-radius:10px;padding:10px 12px;margin-bottom:6px}
+.roi-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.roi-name{font-size:12px;font-weight:600;color:var(--text)}
+.roi-rec{font-size:9px;font-weight:600;padding:2px 7px;border-radius:10px}
+.rec-hot{background:#fdeaea;color:#8a2020}
+.rec-ok{background:#fef3d8;color:#8a5c00}
+.rec-aux{background:#e8f5ee;color:#1a7a52}
+.roi-bars{display:flex;flex-direction:column;gap:4px}
+.roi-bar-row{display:flex;align-items:center;gap:8px}
+.roi-bar-lbl{font-size:9px;color:var(--muted);min-width:44px}
+.roi-bar-track{flex:1;height:4px;background:#e8f0e8;border-radius:2px;overflow:hidden}
+.roi-bar-fill{height:100%;border-radius:2px;background:var(--mint);transition:width .8s ease}
+.roi-bar-fill.b{background:#2e6ed4}
+.roi-bar-fill.c{background:var(--amber)}
+.roi-tip{font-size:10px;color:var(--muted);margin-top:6px;font-style:italic}
 
-/* log panel */
-.field{margin-bottom:14px}
-.field-label{font-size:12px;font-weight:500;color:var(--muted);margin-bottom:6px;display:block}
-.check-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
-.chk{padding:9px 6px;border:0.5px solid var(--border);border-radius:8px;background:var(--bg);font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;text-align:center;transition:all .12s}
-.chk.on{background:var(--green-bg);border-color:var(--green-mid);color:var(--green)}
-.star-row{display:flex;gap:10px}
-.star{font-size:24px;cursor:pointer;opacity:.25;transition:opacity .1s;line-height:1}
-.star.lit{opacity:1}
-textarea{width:100%;border:0.5px solid var(--border);border-radius:8px;padding:10px 12px;font-size:14px;font-family:inherit;color:var(--text);background:var(--card);resize:none;min-height:72px;-webkit-appearance:none}
-textarea:focus{outline:none;border-color:#999}
-.save-btn{width:100%;padding:13px;background:var(--text);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer}
-.save-btn:active{transform:scale(.99)}
-.toast{position:fixed;bottom:calc(70px + var(--safe-bot));left:50%;transform:translateX(-50%);background:var(--text);color:#fff;font-size:13px;font-weight:500;padding:9px 22px;border-radius:22px;z-index:200;opacity:0;transition:opacity .2s;pointer-events:none}
+/* ── Daily log ── */
+.log-item{background:var(--card);border-radius:10px;margin-bottom:6px;overflow:hidden}
+.log-head{display:flex;align-items:center;justify-content:space-between;padding:10px 12px}
+.log-name{font-size:12px;font-weight:600;color:var(--text)}
+.log-imp{font-size:9px;font-weight:500;padding:2px 7px;border-radius:10px}
+.log-imp.r{background:#fdeaea;color:#8a2020}
+.log-imp.a{background:#fef3d8;color:#8a5c00}
+.log-row{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;padding:0 8px 8px}
+.log-day{text-align:center}
+.log-day-lbl{font-size:8px;color:var(--muted);margin-bottom:2px}
+.log-input{width:100%;border:1px solid var(--border);border-radius:5px;padding:4px 2px;font-size:11px;text-align:center;background:var(--white);color:var(--text);font-family:inherit;-webkit-appearance:none}
+.log-input:focus{outline:none;border-color:var(--em)}
+
+/* ── Monthly ── */
+.month-card{background:var(--card);border-radius:10px;padding:10px 12px;margin-bottom:6px}
+.month-name{font-size:12px;font-weight:600;color:var(--text);margin-bottom:8px}
+.month-row{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.month-lbl{font-size:10px;color:var(--muted);min-width:54px}
+.month-val{font-size:12px;font-weight:600;color:var(--text);min-width:48px;font-variant-numeric:tabular-nums}
+.month-target{font-size:10px;color:var(--em);margin-left:auto}
+.month-input{border:1px solid var(--border);border-radius:6px;padding:5px 8px;font-size:12px;font-family:inherit;text-align:center;background:var(--white);color:var(--text);width:70px;-webkit-appearance:none}
+.month-input:focus{outline:none;border-color:var(--em)}
+
+/* ── Diagnoses ── */
+.dx-card{background:var(--card);border-radius:10px;padding:10px 12px;margin-bottom:6px;display:flex;gap:10px}
+.dx-icon{font-size:20px;flex-shrink:0;margin-top:1px}
+.dx-body .dx-name{font-size:12px;font-weight:600;color:var(--text)}
+.dx-body .dx-desc{font-size:11px;color:var(--muted);margin-top:2px;line-height:1.4}
+.dx-body .dx-status{font-size:10px;font-weight:500;margin-top:4px;display:inline-block;padding:2px 7px;border-radius:10px}
+
+/* ── Save button ── */
+.save-btn{width:100%;padding:13px;background:var(--em);color:var(--white);border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;margin-top:8px;transition:opacity .15s;font-family:inherit}
+.save-btn:active{opacity:.85;transform:scale(.99)}
+
+/* ── Toast ── */
+.toast{position:fixed;bottom:calc(70px + var(--safe-bot));left:50%;transform:translateX(-50%);background:var(--nav);color:var(--mint);font-size:13px;font-weight:600;padding:9px 22px;border-radius:22px;z-index:200;opacity:0;transition:opacity .2s;pointer-events:none;white-space:nowrap;border:1px solid rgba(110,207,151,.3)}
 .toast.show{opacity:1}
 
-/* section title */
-.sec-head{font-size:13px;font-weight:600;margin-bottom:10px;margin-top:4px}
-.empty-state{text-align:center;padding:3rem 1rem;color:var(--hint);font-size:13px}
+/* ── Video panel ── */
+.video-btn{width:100%;padding:12px;border:1.5px dashed rgba(110,207,151,.4);border-radius:10px;background:rgba(46,125,82,.08);color:var(--mint);font-size:13px;font-weight:500;cursor:pointer;margin-bottom:8px;font-family:inherit;transition:all .15s}
+.video-btn:active{background:rgba(46,125,82,.15)}
+.video-thumb{border-radius:10px;overflow:hidden;margin-bottom:8px;background:#000;aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.3);font-size:32px}
+video{width:100%;border-radius:10px;display:block}
+input[type=file]{display:none}
 
-/* install banner */
-.install-banner{margin:12px 0;background:var(--blue-bg);border:0.5px solid var(--blue-mid);border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px}
-.install-banner-text{flex:1;font-size:12px;color:var(--blue);line-height:1.4}
-.install-banner-btn{font-size:12px;font-weight:500;color:var(--blue-mid);background:none;border:0.5px solid var(--blue-mid);border-radius:6px;padding:5px 10px;cursor:pointer;white-space:nowrap}
+/* ── Sport chips ── */
+.sport-scroll{display:flex;gap:6px;overflow-x:auto;padding:0 0 4px;scrollbar-width:none;margin-bottom:10px}
+.sport-scroll::-webkit-scrollbar{display:none}
+.sport-chip{flex-shrink:0;display:flex;align-items:center;gap:5px;padding:6px 12px;background:rgba(255,255,255,.08);border:1px solid rgba(110,207,151,.2);border-radius:20px;cursor:pointer;transition:all .12s;color:rgba(248,249,247,.6);font-size:12px;font-weight:500}
+.sport-chip.on{background:rgba(46,125,82,.2);border-color:var(--mint);color:var(--mint)}
+.sport-chip-ic{font-size:14px}
+
+/* ── Progress step ── */
+.step{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--card);border-radius:8px;margin-bottom:4px;transition:all .3s}
+.step.active{background:#e8f0fb;border:1px solid #2e6ed4}
+.step.done{background:#e8f5ee;border:1px solid rgba(110,207,151,.5)}
+.step-dot{width:7px;height:7px;border-radius:50%;background:#c0ccc0;flex-shrink:0;transition:background .3s}
+.step.active .step-dot{background:#2e6ed4;animation:pulse 1s infinite}
+.step.done .step-dot{background:var(--mint)}
+.step-txt{font-size:11px;color:var(--muted)}
+.step.active .step-txt{color:#1a4a8a;font-weight:500}
+.step.done .step-txt{color:#1a7a52}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* ── Analysis result ── */
+.result-hero{background:var(--nav);border-radius:12px;padding:14px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between}
+.res-sport{font-size:14px;font-weight:600;color:var(--white)}
+.res-sub{font-size:10px;color:rgba(248,249,247,.5);margin-top:2px}
+.big-score{text-align:right}
+.big-num{font-size:36px;font-weight:700;color:var(--mint);line-height:1}
+.big-lbl{font-size:9px;color:rgba(248,249,247,.4);margin-top:2px}
+.layer-title{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin:12px 0 6px;display:flex;align-items:center;gap:5px}
+.sc-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.sc{background:var(--card);border-radius:10px;padding:10px 12px}
+.sc-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
+.sc-name{font-size:11px;font-weight:600;color:var(--text);flex:1;margin-right:6px;line-height:1.3}
+.sc-num{font-size:17px;font-weight:700}
+.sc-bar{height:4px;background:#e8f0e8;border-radius:2px;overflow:hidden;margin-bottom:4px}
+.sc-fill{height:100%;border-radius:2px;transition:width 1s ease}
+.sc-note{font-size:9px;color:var(--muted);line-height:1.3}
+.ins{background:var(--card);border-radius:10px;padding:10px 12px;margin-bottom:5px}
+.ins.good{border-left:3px solid var(--mint)}
+.ins.warn{border-left:3px solid var(--amber)}
+.ins.alert{border-left:3px solid var(--coral)}
+.ins.next{border-left:3px solid #7e4ed4;background:#f8f5ff}
+.ins-head{font-size:10px;font-weight:600;color:var(--muted);margin-bottom:2px}
+.ins-body{font-size:12px;color:var(--text);line-height:1.5}
 </style>
 </head>
 <body>
-
-<div class="status-bar"></div>
-
+<div class="sb"></div>
 <div class="topbar">
-  <div class="logo">CP <span>Growth</span></div>
-  <div class="lang-switch">
-    <button class="lang-btn active" onclick="setLang('zh',this)">中文</button>
-    <button class="lang-btn" onclick="setLang('en',this)">EN</button>
-    <button class="lang-btn" onclick="setLang('fr',this)">FR</button>
+  <div class="logo">CP <em>Growth</em> OS</div>
+  <div class="lang-sw">
+    <button class="on" onclick="setLang('zh',this)">中文</button>
+    <button onclick="setLang('en',this)">EN</button>
+    <button onclick="setLang('fr',this)">FR</button>
   </div>
 </div>
 
 <div class="main" id="main">
 
-  <!-- ANALYZE PANEL -->
-  <div class="panel active" id="panel-analyze">
-
-    <div id="install-banner" class="install-banner" style="display:none">
-      <div class="install-banner-text" id="install-text">将此页面添加到主屏幕，像APP一样使用</div>
-      <button class="install-banner-btn" id="install-btn" onclick="installPWA()">添加</button>
-    </div>
-
-    <div class="field">
-      <span class="field-label" data-i18n="chooseSport">选择今天的运动</span>
-      <div class="sport-scroll" id="sport-scroll"></div>
-    </div>
-
-    <div class="camera-section">
-      <span class="field-label" data-i18n="recordVideo">录制或上传视频（建议10–60秒）</span>
-      <div class="camera-box" id="camera-box">
-        <video id="live-video" playsinline muted></video>
-        <video id="preview-video" playsinline controls></video>
-        <div class="camera-placeholder" id="cam-placeholder">
-          <div class="cam-big-icon">🎬</div>
-          <div class="cam-placeholder-text" data-i18n="cameraHint">侧面全身拍摄效果最佳</div>
-        </div>
-      </div>
-
-      <div class="camera-controls" id="cam-controls-idle">
-        <button class="cam-btn primary" onclick="startCamera()" id="btn-start-cam">
-          <span>📷</span> <span data-i18n="openCamera">打开摄像头</span>
-        </button>
-        <button class="cam-btn" onclick="document.getElementById('file-in').click()">
-          <span>📁</span> <span data-i18n="uploadFile">上传文件</span>
-        </button>
-        <input type="file" id="file-in" accept="video/*" style="display:none" onchange="handleFile(this.files[0])">
-      </div>
-
-      <div class="camera-controls" id="cam-controls-live" style="display:none">
-        <button class="cam-btn red" onclick="startRecording()" id="btn-record">
-          <span class="rec-dot"></span> <span data-i18n="startRec">开始录制</span>
-        </button>
-        <button class="cam-btn" onclick="stopCamera()">
-          <span>✕</span> <span data-i18n="cancel">取消</span>
-        </button>
-      </div>
-
-      <div class="camera-controls" id="cam-controls-recording" style="display:none">
-        <button class="cam-btn red" onclick="stopRecording()">
-          <span>⏹</span> <span data-i18n="stopRec">停止录制</span> <span class="rec-timer" id="rec-timer">0:00</span>
-        </button>
-      </div>
-
-      <div class="camera-controls" id="cam-controls-preview" style="display:none">
-        <button class="cam-btn green" onclick="confirmVideo()">
-          <span>✓</span> <span data-i18n="useVideo">使用此视频</span>
-        </button>
-        <button class="cam-btn" onclick="retakeVideo()">
-          <span>↩</span> <span data-i18n="retake">重拍</span>
-        </button>
-      </div>
-
-      <div class="camera-controls" id="cam-controls-confirmed" style="display:none">
-        <button class="cam-btn" onclick="retakeVideo()">
-          <span>↩</span> <span data-i18n="changeVideo">更换视频</span>
-        </button>
-      </div>
-    </div>
-
-    <button class="analyze-btn" id="analyze-btn" onclick="startAnalysis()" disabled>
-      <span data-i18n="analyzeBtn">AI 动作分析</span>
-    </button>
-
-    <div class="progress-wrap" id="progress-wrap" style="display:none"></div>
-    <div id="results-wrap"></div>
+<!-- ══ PANEL: 仪表盘 ══ -->
+<div class="panel on" id="p-dash">
+  <div class="alert-banner">
+    <div class="alert-title" data-i18n="alertTitle">⚠️ 本周需要关注</div>
+    <div class="alert-item" data-i18n="alert1">PRC集合训练 — 停训退步显著，必须每天坚持5分钟</div>
+    <div class="alert-item" data-i18n="alert2">助听器高频增益 — 待联系 Matthieu Paquette 调整</div>
+    <div class="alert-item" data-i18n="alert3">右腿单脚站立 — 2年未改善，需重点训练</div>
   </div>
 
-  <!-- HISTORY PANEL -->
-  <div class="panel" id="panel-history">
-    <div class="sec-head" data-i18n="historyTitle">分析历史</div>
-    <div id="hist-list"></div>
+  <div class="sec-head" data-i18n="kpiTitle">核心功能指标</div>
+  <div class="kpi-grid" id="kpi-grid"></div>
+
+  <div class="sec-head" data-i18n="weekAdvice">本周行动建议</div>
+  <div class="advice-list">
+    <div class="advice-item"><div class="advice-num">1</div><div class="advice-body"><div class="advice-head" data-i18n="adv1h">主线活动：无人机 / 电子制作</div><div class="advice-text" data-i18n="adv1b">每周2–4次，每次20–45分钟；重点观察右手是否参与拿螺丝刀、稳定零件。</div></div></div>
+    <div class="advice-item"><div class="advice-num">2</div><div class="advice-body"><div class="advice-head" data-i18n="adv2h">下肢最小有效剂量</div><div class="advice-text" data-i18n="adv2b">单脚站立/拉伸做短时高频，不要把孩子喜欢的时间全部挤掉。</div></div></div>
+    <div class="advice-item"><div class="advice-num">3</div><div class="advice-body"><div class="advice-head" data-i18n="adv3h">视频档案优先</div><div class="advice-text" data-i18n="adv3b">每月固定拍5段视频，比每天记大量文字更有价值。</div></div></div>
+    <div class="advice-item"><div class="advice-num">4</div><div class="advice-body"><div class="advice-head" data-i18n="adv4h">疲劳红线</div><div class="advice-text" data-i18n="adv4b">疲劳评分连续>3，下周减少球类/高强度，保留游泳或散步。</div></div></div>
+  </div>
+</div>
+
+<!-- ══ PANEL: 时间线 ══ -->
+<div class="panel" id="p-time">
+  <div class="sec-head" data-i18n="motorHistory">运动/康复评估</div>
+  <div id="tl-motor"></div>
+  <div class="sec-head" data-i18n="eyeHistory">眼科随访</div>
+  <div id="tl-eye"></div>
+  <div class="sec-head" data-i18n="earHistory">听力随访</div>
+  <div id="tl-ear"></div>
+</div>
+
+<!-- ══ PANEL: 指标 ══ -->
+<div class="panel" id="p-metrics">
+  <div class="sec-head" data-i18n="motorMetrics">🦴 运动功能指标</div>
+  <div id="metrics-motor"></div>
+  <div class="sec-head" data-i18n="eyeMetrics">👁️ 眼科功能指标</div>
+  <div id="metrics-eye"></div>
+  <div class="sec-head" data-i18n="earMetrics">👂 听力功能指标</div>
+  <div id="metrics-ear"></div>
+</div>
+
+<!-- ══ PANEL: 训练 ══ -->
+<div class="panel" id="p-train">
+  <div class="sec-head" data-i18n="legTraining">🦴 腿脚训练</div>
+  <div id="train-leg"></div>
+  <div class="sec-head" data-i18n="eyeTraining">👁️ 眼科训练</div>
+  <div id="train-eye"></div>
+  <div class="sec-head" data-i18n="earTraining">👂 听力管理</div>
+  <div id="train-ear"></div>
+  <div class="sec-head" data-i18n="handTraining">✋ 手功能训练</div>
+  <div id="train-hand"></div>
+  <div class="sec-head" data-i18n="sportSection">⚽ 运动ROI</div>
+  <div id="roi-list"></div>
+</div>
+
+<!-- ══ PANEL: 视频分析 ══ -->
+<div class="panel" id="p-video">
+  <div class="sport-scroll" id="sport-scroll"></div>
+
+  <div id="cam-idle">
+    <button class="video-btn" onclick="document.getElementById('file-in').click()">📁 <span data-i18n="uploadVideo">上传视频</span></button>
+    <button class="video-btn" onclick="openCamera()">📷 <span data-i18n="recordVideo">打开摄像头录制</span></button>
+    <input type="file" id="file-in" accept="video/*" onchange="handleFile(this.files[0])">
+  </div>
+  <div id="cam-preview" style="display:none">
+    <div class="video-thumb"><video id="prev-vid" playsinline controls></video></div>
+    <div style="display:flex;gap:6px">
+      <button class="save-btn" style="flex:1" onclick="confirmVideo()"><span data-i18n="useVideo">使用此视频</span></button>
+      <button class="save-btn" style="flex:1;background:#4A5568" onclick="retakeVideo()"><span data-i18n="retake">重拍</span></button>
+    </div>
+  </div>
+  <div id="cam-confirmed" style="display:none">
+    <div style="background:#e8f5ee;border-radius:8px;padding:8px 12px;font-size:12px;color:#1a7a52;margin-bottom:8px" data-i18n="videoReady">✓ 视频已选择，点击下方开始分析</div>
+    <button class="save-btn" onclick="startAnalysis()" id="analyze-btn"><span data-i18n="startAnalysis">开始 AI 动作分析</span></button>
+    <button class="video-btn" style="margin-top:6px" onclick="retakeVideo()"><span data-i18n="changeVideo">更换视频</span></button>
   </div>
 
-  <!-- LOG PANEL -->
-  <div class="panel" id="panel-log">
-    <div class="sec-head" data-i18n="logTitle">今日记录</div>
-    <div class="field">
-      <span class="field-label" data-i18n="logActivities">完成的活动</span>
-      <div class="check-grid" id="log-activities"></div>
-    </div>
-    <div class="field">
-      <span class="field-label" data-i18n="logRightHand">右手主动使用</span>
-      <div class="star-row" id="stars-hand">
-        <span class="star" onclick="setStar('hand',1)">★</span>
-        <span class="star" onclick="setStar('hand',2)">★</span>
-        <span class="star" onclick="setStar('hand',3)">★</span>
-        <span class="star" onclick="setStar('hand',4)">★</span>
-        <span class="star" onclick="setStar('hand',5)">★</span>
-      </div>
-    </div>
-    <div class="field">
-      <span class="field-label" data-i18n="logGait">步态表现</span>
-      <div class="star-row" id="stars-gait">
-        <span class="star" onclick="setStar('gait',1)">★</span>
-        <span class="star" onclick="setStar('gait',2)">★</span>
-        <span class="star" onclick="setStar('gait',3)">★</span>
-        <span class="star" onclick="setStar('gait',4)">★</span>
-        <span class="star" onclick="setStar('gait',5)">★</span>
-      </div>
-    </div>
-    <div class="field">
-      <span class="field-label" data-i18n="logMood">孩子状态</span>
-      <div class="star-row" id="stars-mood">
-        <span class="star" onclick="setStar('mood',1)">★</span>
-        <span class="star" onclick="setStar('mood',2)">★</span>
-        <span class="star" onclick="setStar('mood',3)">★</span>
-        <span class="star" onclick="setStar('mood',4)">★</span>
-        <span class="star" onclick="setStar('mood',5)">★</span>
-      </div>
-    </div>
-    <div class="field">
-      <span class="field-label" data-i18n="logNotes">备注</span>
-      <textarea id="log-notes" data-i18n-placeholder="logPlaceholder" placeholder="今天踢球时右脚明显稳了很多..."></textarea>
-    </div>
-    <button class="save-btn" onclick="saveLog()" data-i18n="saveLog">保存记录</button>
+  <div id="progress-wrap" style="display:none;margin-top:8px"></div>
+  <div id="result-wrap"></div>
+</div>
+
+<!-- ══ PANEL: 月度记录 ══ -->
+<div class="panel" id="p-monthly">
+  <div class="sec-head" data-i18n="monthTitle">月度关键指标</div>
+  <div id="monthly-form"></div>
+  <button class="save-btn" onclick="saveMonthly()" data-i18n="saveMonthly">保存本月记录</button>
+</div>
+
+<!-- ══ PANEL: 日志 ══ -->
+<div class="panel" id="p-log">
+  <div class="sec-head" data-i18n="logTitle">每日训练打卡</div>
+  <div id="log-form"></div>
+  <div class="card" style="margin-top:8px">
+    <div class="card-title" data-i18n="logNote">今日备注</div>
+    <textarea id="log-note" style="width:100%;border:1px solid var(--border);border-radius:8px;padding:8px;font-size:13px;font-family:inherit;color:var(--text);resize:none;min-height:60px;margin-top:6px;background:var(--white)" data-i18n-placeholder="logPlaceholder" placeholder="比如：右脚踢球时明显抬高了，无人机组装用右手拿螺丝刀3次..."></textarea>
   </div>
+  <button class="save-btn" onclick="saveLog()" data-i18n="saveLog">保存今日记录</button>
+</div>
 
 </div><!-- end .main -->
 
-<!-- bottom nav -->
-<div class="bottomnav">
-  <div class="nav-item active" onclick="switchNav('analyze',this)" id="nav-analyze">
-    <div class="nav-icon">🎬</div>
-    <div class="nav-label" data-i18n="navAnalyze">视频分析</div>
+<!-- Bottom nav -->
+<div class="bnav">
+  <div class="ni on" onclick="switchNav('dash',this)" id="ni-dash">
+    <div class="ni-dot"></div>
+    <div class="ni-ic">🎯</div>
+    <div class="ni-lb" data-i18n="navDash">仪表盘</div>
   </div>
-  <div class="nav-item" onclick="switchNav('history',this)" id="nav-history">
-    <div class="nav-icon">📊</div>
-    <div class="nav-label" data-i18n="navHistory">历史</div>
+  <div class="ni" onclick="switchNav('time',this)" id="ni-time">
+    <div class="ni-ic">📅</div>
+    <div class="ni-lb" data-i18n="navTime">时间线</div>
   </div>
-  <div class="nav-item" onclick="switchNav('log',this)" id="nav-log">
-    <div class="nav-icon">📝</div>
-    <div class="nav-label" data-i18n="navLog">记录</div>
+  <div class="ni" onclick="switchNav('metrics',this)" id="ni-metrics">
+    <div class="ni-ic">📊</div>
+    <div class="ni-lb" data-i18n="navMetrics">指标</div>
+  </div>
+  <div class="ni" onclick="switchNav('train',this)" id="ni-train">
+    <div class="ni-ic">🏃</div>
+    <div class="ni-lb" data-i18n="navTrain">训练</div>
+  </div>
+  <div class="ni" onclick="switchNav('video',this)" id="ni-video">
+    <div class="ni-ic">🎥</div>
+    <div class="ni-lb" data-i18n="navVideo">视频</div>
+  </div>
+  <div class="ni" onclick="switchNav('monthly',this)" id="ni-monthly">
+    <div class="ni-ic">📈</div>
+    <div class="ni-lb" data-i18n="navMonthly">月测</div>
+  </div>
+  <div class="ni" onclick="switchNav('log',this)" id="ni-log">
+    <div class="ni-ic">✅</div>
+    <div class="ni-lb" data-i18n="navLog">打卡</div>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script>
-// ── i18n ──────────────────────────────────────────────────────
+// ══ i18n ══════════════════════════════════════════════════════
 const T = {
   zh: {
-    chooseSport:'选择今天的运动', recordVideo:'录制或上传视频（建议10–60秒）',
-    cameraHint:'侧面全身拍摄效果最佳', openCamera:'打开摄像头', uploadFile:'上传文件',
-    startRec:'开始录制', stopRec:'停止录制', cancel:'取消',
-    useVideo:'使用此视频', retake:'重拍', changeVideo:'更换视频',
-    analyzeBtn:'AI 动作分析', analyzeStart:'分析中...',
-    navAnalyze:'视频分析', navHistory:'历史', navLog:'记录',
-    historyTitle:'分析历史', logTitle:'今日记录',
-    logActivities:'完成的活动', logRightHand:'右手主动使用', logGait:'步态表现',
-    logMood:'孩子状态', logNotes:'备注', saveLog:'保存记录',
-    logPlaceholder:'今天踢球时右脚明显稳了很多...',
-    installText:'将此页面添加到主屏幕，像APP一样使用', installBtn:'添加',
-    toastSaved:'记录已保存', toastAnalyzing:'正在分析...',
+    alertTitle:'⚠️ 本周需要关注', alert1:'PRC集合训练 — 停训退步显著，必须每天坚持5分钟', alert2:'助听器高频增益 — 待联系 Matthieu Paquette 调整', alert3:'右腿单脚站立 — 2年未改善，需重点训练',
+    kpiTitle:'核心功能指标', weekAdvice:'本周行动建议',
+    adv1h:'主线活动：无人机 / 电子制作', adv1b:'每周2–4次，每次20–45分钟；重点观察右手是否参与拿螺丝刀、稳定零件。',
+    adv2h:'下肢最小有效剂量', adv2b:'单脚站立/拉伸做短时高频，不要把孩子喜欢的时间全部挤掉。',
+    adv3h:'视频档案优先', adv3b:'每月固定拍5段视频，比每天记大量文字更有价值。',
+    adv4h:'疲劳红线', adv4b:'疲劳评分连续>3，下周减少球类/高强度，保留游泳或散步。',
+    motorHistory:'运动/康复评估', eyeHistory:'眼科随访', earHistory:'听力随访',
+    motorMetrics:'🦴 运动功能指标', eyeMetrics:'👁️ 眼科功能指标', earMetrics:'👂 听力功能指标',
+    legTraining:'🦴 腿脚训练', eyeTraining:'👁️ 眼科训练', earTraining:'👂 听力管理', handTraining:'✋ 手功能训练', sportSection:'⚽ 运动ROI',
+    navDash:'仪表盘', navTime:'时间线', navMetrics:'指标', navTrain:'训练', navVideo:'视频', navMonthly:'月测', navLog:'打卡',
+    uploadVideo:'上传视频', recordVideo:'打开摄像头录制', useVideo:'使用此视频', retake:'重拍', changeVideo:'更换视频',
+    videoReady:'✓ 视频已选择，点击下方开始分析', startAnalysis:'开始 AI 动作分析',
+    monthTitle:'月度关键指标', saveMonthly:'保存本月记录', logTitle:'每日训练打卡', logNote:'今日备注',
+    logPlaceholder:'比如：右脚踢球时明显抬高了，无人机组装用右手拿螺丝刀3次...', saveLog:'保存今日记录',
+    sports:[{id:'swim',ic:'🏊',n:'游泳'},{id:'foot',ic:'⚽',n:'足球'},{id:'basket',ic:'🏀',n:'篮球'},{id:'bike',ic:'🚴',n:'骑车'},{id:'drone',ic:'🛸',n:'无人机'},{id:'elec',ic:'🔧',n:'电子制作'},{id:'walk',ic:'🚶',n:'行走训练'},{id:'shuttle',ic:'🏸',n:'羽毛球'}],
+    priLbl:{'🔴 最高':'最高','🟡 高':'高','🟢 中':'中'},
+    toastSaved:'记录已保存 ✓', analyzeWait:'分析中...',
     steps:['视频上传中...','骨骼关键点提取','关节角度计算','步态与对称性分析','双手协调分析','生成评估报告'],
-    layer1:'第一层：身体结构（关节活动度）', layer2:'第二层：运动质量',
-    aiInsights:'AI 分析洞察', nextFocus:'下次训练重点',
     overall:'综合评分', rehabVal:'康复价值',
-    shoulder:'肩关节', elbow:'肘关节', wrist:'手腕伸展', ankle:'踝关节',
-    symmetry:'左右对称性', gaitInward:'足内扣', rightHandUse:'右手主动使用',
-    bimanual:'双手协调', balance:'平衡控制',
-    emptyHistory:'完成第一次分析后记录会出现在这里',
-    sports:[
-      {id:'football',icon:'⚽',name:'足球'},
-      {id:'badminton',icon:'🏸',name:'羽毛球'},
-      {id:'basketball',icon:'🏀',name:'篮球'},
-      {id:'swimming',icon:'🏊',name:'游泳'},
-      {id:'drone',icon:'🛸',name:'无人机制作'},
-      {id:'electronics',icon:'🔧',name:'电子制作'},
-      {id:'walking',icon:'🚶',name:'行走训练'},
-      {id:'other',icon:'🎯',name:'其他'},
-    ],
-    logActs:['无人机制作','足球','篮球','游泳','电子制作','PT/OT训练','学校体育','视觉训练','其他'],
+    shoulder:'肩关节', elbow:'肘关节', wrist:'手腕', ankle:'踝关节',
+    symmetry:'左右对称', gaitInward:'足内扣', rightHand:'右手使用', bimanual:'双手协调', balance:'平衡',
+    nextFocus:'下次训练重点', aiInsights:'AI 分析洞察',
   },
   en: {
-    chooseSport:'Choose today\'s activity', recordVideo:'Record or upload video (10–60 sec recommended)',
-    cameraHint:'Best results with full-body side view', openCamera:'Open Camera', uploadFile:'Upload File',
-    startRec:'Start Recording', stopRec:'Stop Recording', cancel:'Cancel',
-    useVideo:'Use This Video', retake:'Retake', changeVideo:'Change Video',
-    analyzeBtn:'AI Motion Analysis', analyzeStart:'Analysing...',
-    navAnalyze:'Analysis', navHistory:'History', navLog:'Log',
-    historyTitle:'Analysis History', logTitle:'Daily Log',
-    logActivities:'Activities completed', logRightHand:'Right hand active use', logGait:'Gait performance',
-    logMood:'Child\'s mood & cooperation', logNotes:'Notes', saveLog:'Save Log',
-    logPlaceholder:'e.g. right foot much more stable during football today...',
-    installText:'Add to home screen to use like an app', installBtn:'Add',
-    toastSaved:'Log saved', toastAnalyzing:'Analysing...',
-    steps:['Uploading video...','Extracting skeleton keypoints','Calculating joint angles','Gait & symmetry analysis','Bimanual coordination analysis','Generating assessment report'],
-    layer1:'Layer 1: Body Structure (Joint ROM)', layer2:'Layer 2: Movement Quality',
-    aiInsights:'AI Insights', nextFocus:'Next Training Focus',
+    alertTitle:'⚠️ This Week\'s Priorities', alert1:'PRC Training — Significant regression after 2 weeks off, must do 5 min daily', alert2:'Hearing Aid HF Gain — Contact Matthieu Paquette to adjust', alert3:'Right Leg Single Stand — No improvement in 2 years, needs focus',
+    kpiTitle:'Core Functional KPIs', weekAdvice:'Weekly Action Plan',
+    adv1h:'Lead Activity: Drone / Electronics', adv1b:'2–4×/week, 20–45 min; focus on right hand participation (holding screwdriver, stabilizing parts).',
+    adv2h:'Minimal Effective Dose (Legs)', adv2b:'Short, frequent single-leg stands and stretches — don\'t crowd out his favorite activities.',
+    adv3h:'Video Archive First', adv3b:'5 fixed monthly video clips beats daily text notes every time.',
+    adv4h:'Fatigue Red Line', adv4b:'If fatigue score > 3 for 3+ days, cut sports/intensity next week. Keep swimming or walking.',
+    motorHistory:'Motor / Rehab Assessments', eyeHistory:'Vision Follow-ups', earHistory:'Audiology Follow-ups',
+    motorMetrics:'🦴 Motor Function', eyeMetrics:'👁️ Vision Function', earMetrics:'👂 Hearing Function',
+    legTraining:'🦴 Leg & Foot Training', eyeTraining:'👁️ Vision Training', earTraining:'👂 Hearing Management', handTraining:'✋ Hand Function', sportSection:'⚽ Activity ROI',
+    navDash:'Dashboard', navTime:'Timeline', navMetrics:'Metrics', navTrain:'Training', navVideo:'Video', navMonthly:'Monthly', navLog:'Log',
+    uploadVideo:'Upload Video', recordVideo:'Open Camera', useVideo:'Use This Video', retake:'Retake', changeVideo:'Change Video',
+    videoReady:'✓ Video selected — tap below to start analysis', startAnalysis:'Start AI Motion Analysis',
+    monthTitle:'Monthly Key Metrics', saveMonthly:'Save Monthly Record', logTitle:'Daily Training Log', logNote:'Today\'s Notes',
+    logPlaceholder:'e.g. right foot lifted noticeably during soccer; used right hand for screwdriver 3 times making drone...', saveLog:'Save Daily Log',
+    sports:[{id:'swim',ic:'🏊',n:'Swimming'},{id:'foot',ic:'⚽',n:'Football'},{id:'basket',ic:'🏀',n:'Basketball'},{id:'bike',ic:'🚴',n:'Cycling'},{id:'drone',ic:'🛸',n:'Drone Build'},{id:'elec',ic:'🔧',n:'Electronics'},{id:'walk',ic:'🚶',n:'Walking'},{id:'shuttle',ic:'🏸',n:'Badminton'}],
+    priLbl:{'🔴 最高':'Critical','🟡 高':'High','🟢 中':'Medium'},
+    toastSaved:'Saved ✓', analyzeWait:'Analysing...',
+    steps:['Uploading video...','Extracting skeleton keypoints','Calculating joint angles','Gait & symmetry analysis','Bimanual analysis','Generating report'],
     overall:'Overall Score', rehabVal:'Rehab Value',
-    shoulder:'Shoulder', elbow:'Elbow', wrist:'Wrist Extension', ankle:'Ankle',
-    symmetry:'L/R Symmetry', gaitInward:'Foot Inward Turn', rightHandUse:'Right Hand Use',
-    bimanual:'Bimanual Coord.', balance:'Balance Control',
-    emptyHistory:'Your analysis history will appear here after the first session',
-    sports:[
-      {id:'football',icon:'⚽',name:'Football'},
-      {id:'badminton',icon:'🏸',name:'Badminton'},
-      {id:'basketball',icon:'🏀',name:'Basketball'},
-      {id:'swimming',icon:'🏊',name:'Swimming'},
-      {id:'drone',icon:'🛸',name:'Drone Building'},
-      {id:'electronics',icon:'🔧',name:'Electronics'},
-      {id:'walking',icon:'🚶',name:'Walking Practice'},
-      {id:'other',icon:'🎯',name:'Other'},
-    ],
-    logActs:['Drone Building','Football','Basketball','Swimming','Electronics','PT/OT Session','PE at school','Vision Training','Other'],
+    shoulder:'Shoulder', elbow:'Elbow', wrist:'Wrist', ankle:'Ankle',
+    symmetry:'L/R Symmetry', gaitInward:'Foot Inward', rightHand:'Right Hand', bimanual:'Bimanual', balance:'Balance',
+    nextFocus:'Next Training Focus', aiInsights:'AI Insights',
   },
   fr: {
-    chooseSport:'Choisir l\'activité du jour', recordVideo:'Enregistrer ou télécharger une vidéo (10–60 sec)',
-    cameraHint:'Vue de côté plein corps recommandée', openCamera:'Ouvrir la caméra', uploadFile:'Télécharger',
-    startRec:'Commencer l\'enregistrement', stopRec:'Arrêter', cancel:'Annuler',
-    useVideo:'Utiliser cette vidéo', retake:'Reprendre', changeVideo:'Changer la vidéo',
-    analyzeBtn:'Analyse IA du mouvement', analyzeStart:'Analyse en cours...',
-    navAnalyze:'Analyse', navHistory:'Historique', navLog:'Journal',
-    historyTitle:'Historique des analyses', logTitle:'Journal du jour',
-    logActivities:'Activités réalisées', logRightHand:'Utilisation main droite', logGait:'Qualité de la marche',
-    logMood:'État et coopération', logNotes:'Notes', saveLog:'Enregistrer',
-    logPlaceholder:'Ex. pied droit beaucoup plus stable au foot aujourd\'hui...',
-    installText:'Ajouter à l\'écran d\'accueil pour utiliser comme une app', installBtn:'Ajouter',
-    toastSaved:'Journal enregistré', toastAnalyzing:'Analyse en cours...',
-    steps:['Téléchargement vidéo...','Extraction des points squelettiques','Calcul des angles articulaires','Analyse de la marche et symétrie','Analyse coordination bimanuelles','Génération du rapport'],
-    layer1:'Couche 1 : Structure corporelle (amplitude articulaire)', layer2:'Couche 2 : Qualité du mouvement',
-    aiInsights:'Insights IA', nextFocus:'Prochain objectif',
+    alertTitle:'⚠️ Priorités de la semaine', alert1:'Entraînement PRC — Régression significative après 2 sem. sans pratique, 5 min/jour obligatoire', alert2:'Gain HF appareil auditif — Contacter Matthieu Paquette', alert3:'Station unipodal droit — Pas d\'amélioration en 2 ans, priorité absolue',
+    kpiTitle:'Indicateurs fonctionnels clés', weekAdvice:'Plan d\'action hebdomadaire',
+    adv1h:'Activité principale : Drone / Électronique', adv1b:'2–4×/semaine, 20–45 min ; observer la participation de la main droite.',
+    adv2h:'Dose minimale efficace (membres inf.)', adv2b:'Station unipodal et étirements courts et fréquents — ne pas empiéter sur ses activités préférées.',
+    adv3h:'Archives vidéo en priorité', adv3b:'5 clips vidéo mensuels fixes > notes texte quotidiennes.',
+    adv4h:'Seuil de fatigue', adv4b:'Si score fatigue > 3 pendant 3+ jours, réduire sport/intensité la semaine suivante.',
+    motorHistory:'Évaluations motrices / réadaptation', eyeHistory:'Suivis ophtalmologiques', earHistory:'Suivis audiologiques',
+    motorMetrics:'🦴 Fonction motrice', eyeMetrics:'👁️ Fonction visuelle', earMetrics:'👂 Fonction auditive',
+    legTraining:'🦴 Entraînement membres inf.', eyeTraining:'👁️ Entraînement visuel', earTraining:'👂 Gestion auditive', handTraining:'✋ Fonction manuelle', sportSection:'⚽ ROI des activités',
+    navDash:'Tableau de bord', navTime:'Chronologie', navMetrics:'Indicateurs', navTrain:'Entraînement', navVideo:'Vidéo', navMonthly:'Mensuel', navLog:'Journal',
+    uploadVideo:'Téléverser vidéo', recordVideo:'Ouvrir caméra', useVideo:'Utiliser cette vidéo', retake:'Reprendre', changeVideo:'Changer de vidéo',
+    videoReady:'✓ Vidéo sélectionnée — appuyez ci-dessous pour analyser', startAnalysis:'Lancer l\'analyse IA',
+    monthTitle:'Indicateurs mensuels clés', saveMonthly:'Enregistrer le bilan mensuel', logTitle:'Journal d\'entraînement quotidien', logNote:'Notes du jour',
+    logPlaceholder:'Ex. pied droit bien levé au foot ; main droite utilisée 3x pour le tournevis du drone...', saveLog:'Enregistrer le journal',
+    sports:[{id:'swim',ic:'🏊',n:'Natation'},{id:'foot',ic:'⚽',n:'Football'},{id:'basket',ic:'🏀',n:'Basketball'},{id:'bike',ic:'🚴',n:'Vélo'},{id:'drone',ic:'🛸',n:'Drone'},{id:'elec',ic:'🔧',n:'Électronique'},{id:'walk',ic:'🚶',n:'Marche'},{id:'shuttle',ic:'🏸',n:'Badminton'}],
+    priLbl:{'🔴 最高':'Critique','🟡 高':'Élevé','🟢 中':'Moyen'},
+    toastSaved:'Enregistré ✓', analyzeWait:'Analyse en cours...',
+    steps:['Téléversement...','Extraction squelette','Calcul angles articulaires','Analyse démarche','Analyse bimanuelles','Génération du rapport'],
     overall:'Score global', rehabVal:'Valeur rééducative',
     shoulder:'Épaule', elbow:'Coude', wrist:'Poignet', ankle:'Cheville',
-    symmetry:'Symétrie G/D', gaitInward:'Varus du pied', rightHandUse:'Usage main droite',
-    bimanual:'Coordination bi-manuelle', balance:'Équilibre',
-    emptyHistory:'L\'historique apparaîtra ici après la première analyse',
-    sports:[
-      {id:'football',icon:'⚽',name:'Football'},
-      {id:'badminton',icon:'🏸',name:'Badminton'},
-      {id:'basketball',icon:'🏀',name:'Basketball'},
-      {id:'swimming',icon:'🏊',name:'Natation'},
-      {id:'drone',icon:'🛸',name:'Construction drone'},
-      {id:'electronics',icon:'🔧',name:'Électronique'},
-      {id:'walking',icon:'🚶',name:'Marche'},
-      {id:'other',icon:'🎯',name:'Autre'},
-    ],
-    logActs:['Construction drone','Football','Basketball','Natation','Électronique','Séance PT/OT','Sport scolaire','Entraînement visuel','Autre'],
+    symmetry:'Symétrie G/D', gaitInward:'Varus pied', rightHand:'Main droite', bimanual:'Bimanuelles', balance:'Équilibre',
+    nextFocus:'Prochain objectif', aiInsights:'Insights IA',
   }
 };
 
 let lang = localStorage.getItem('cp_lang') || 'zh';
-let selectedSport = null;
+const t = k => (T[lang]||T.zh)[k] || T.zh[k] || k;
+
+// ══ DATA ══════════════════════════════════════════════════════
+const KPI_DATA = [
+  {key:'sls_right', label:{zh:'右腿站立',en:'R.Leg Stand',fr:'Station unipodal D'}, icon:'🦴', val:2, max:8, unit:'秒', target:8, color:'#6FCF97'},
+  {key:'hop_right', label:{zh:'右脚单跳',en:'R.Leg Hop',fr:'Saut unipodal D'}, icon:'🦴', val:0, max:3, unit:'次', target:3, color:'#6FCF97'},
+  {key:'prc', label:{zh:'PRC集合',en:'PRC',fr:'PRC'}, icon:'👁️', val:10, max:20, unit:'cm', target:5, color:'#2e6ed4', invert:true},
+  {key:'strabismus', label:{zh:'外斜频率',en:'Strabismus',fr:'Strabisme'}, icon:'👁️', val:2, max:5, unit:'⭐', target:4, color:'#2e6ed4'},
+  {key:'hearing', label:{zh:'左耳识别率',en:'L.Ear Speech',fr:'Discrim. G'}, icon:'👂', val:88, max:100, unit:'%', target:90, color:'#7e4ed4'},
+  {key:'right_hand', label:{zh:'右手参与率',en:'R.Hand Use',fr:'Main droite'}, icon:'✋', val:0, max:100, unit:'%', target:50, color:'#F2C94C'},
+];
+
+const TIMELINE = {
+  motor: [
+    {date:'2020-02', age:'2y4m', place:'Elna Tiny Tots (Dr. Bernier)', find:'右侧肢体使用减少，轻度痉挛，ESR升高', dx:'疑似脑瘫→MRI转介'},
+    {date:'2020-08', age:'2y10m', place:'MCH MRI (Dr. Bernier)', find:'左额叶出血+脑室周围白质变化', dx:'围产期左额叶脑血管意外→右侧偏瘫'},
+    {date:'2021-12~2022-01', age:'4y2m', place:'LLMRC OT+PT+SLP', find:'GMQ=74(4th%), FMQ=109(73rd%), GMFM=70.8, GMFCS I', dx:'CP右侧痉挛型+左耳传导性损失'},
+    {date:'2023-04-06', age:'5y6m', place:'Shriners Hospital PT', find:'SLS右1-2s，主动背屈右0°，腓肠肌1-1+/4', dx:'足下垂+内扣，腘绳肌偏紧(右150°)'},
+  ],
+  eye: [
+    {date:'2023-08-25', age:'5y10m', place:'视觉诊所 转介', find:'外斜20Δ，PRC 7/9cm，立体视觉8/8正常', dx:'外斜视+集合不足'},
+    {date:'2023-11-08', age:'6y1m', place:'视觉诊所 正式诊断', find:'18Δ VL，30Δ VP，PRC 5/7cm', dx:'交替性外斜视，集合不足'},
+    {date:'2024-01-17', age:'6y3m', place:'视觉诊所 复查', find:'改push-up，PRC 3/6cm（最佳）', dx:'持续外斜，妈妈选暂不手术'},
+    {date:'2024-03-13', age:'6y5m', place:'视觉诊所 复查', find:'PRC 3cm维持，斜视25Δ VP改善', dx:'间歇性外斜视'},
+    {date:'2024-06-13', age:'6y8m', place:'视觉诊所 最新', find:'PRC退步10cm（停训2周），结膜炎', dx:'外斜+过敏性结膜炎，Patanol处方'},
+  ],
+  ear: [
+    {date:'2022-11-15', age:'5y1m', place:'McGill MCH 首次', find:'左耳轻-中度传导性损失，OAE左缺失，右正常', dx:'左耳传导性损失，砧骨问题→CT转介'},
+    {date:'2024-09-13', age:'6y11m', place:'LLMRC', find:'左耳~35-40dB，右正常，助听器评估', dx:'最小到中重度（左）→Phonak SKY B90-P'},
+    {date:'2025-03-13', age:'7y5m', place:'LLMRC', find:'左耳96%识别(65dB)，助听器增益评估', dx:'最小到中重度稳定，高频增益讨论'},
+    {date:'2026-04-21', age:'8y6m', place:'LLMRC 最新', find:'左耳88%识别(75dB)，助听器+眼镜不兼容', dx:'稳定，高频增益↑待调整，Patanol续期'},
+  ]
+};
+
+const METRICS = {
+  motor: [
+    {name:'右踝主动背屈(Active DF)', v22:'0°', v23:'0°', tgt:'≥10°', pri:'🔴 最高', pct:0, note:'足下垂根因，最需突破'},
+    {name:'右踝被动背屈(Passive DF)', v22:'+5°', v23:'+20°', tgt:'维持≥20°', pri:'🟡 高', pct:75, note:'1年+15°，最显著进步'},
+    {name:'腓肠肌痉挛(Ashworth)', v22:'1+/4', v23:'1-1+/4', tgt:'维持或降低', pri:'🔴 最高', pct:30, note:'直接导致足下垂'},
+    {name:'右腿单脚站立(SLS)', v22:'1-2秒', v23:'1-2秒', tgt:'≥8秒', pri:'🔴 最高', pct:15, note:'2年未改善，重点训练'},
+    {name:'左腿单脚站立', v22:'6秒', v23:'16秒', tgt:'维持≥16秒', pri:'🟢 中', pct:85, note:'进步显著'},
+    {name:'右脚单腿跳(Hop)', v22:'无法', v23:'0次', tgt:'≥3次', pri:'🔴 最高', pct:5, note:'踝关节+平衡综合指标'},
+    {name:'腘绳肌——右(腘角)', v22:'~5°膝弯', v23:'150°', tgt:'≥165°', pri:'🟡 高', pct:55, note:'右腿比左腿紧30°'},
+    {name:'右手主动使用率', v22:'低', v23:'低', tgt:'≥50%', pri:'🔴 最高', pct:20, note:'核心功能目标'},
+    {name:'粗大运动商GMQ', v22:'74(4th%)', v23:'—', tgt:'待复测', pri:'🟡 高', pct:74, note:'最差领域，需复测'},
+    {name:'精细运动商FMQ', v22:'109(73rd%)', v23:'—', tgt:'维持≥73rd%', pri:'🟢 中', pct:88, note:'优势领域'},
+  ],
+  eye: [
+    {name:'PRC集合近点(cm)', v22:'7/9cm', v23:'10cm(退步)', tgt:'<5cm', pri:'🔴 最高', pct:20, note:'停训2周从3→10cm！'},
+    {name:'远距斜视角VL(Δ)', v22:'20Δ', v23:'18Δ', tgt:'<10Δ', pri:'🔴 最高', pct:45, note:'持平，未进一步改善'},
+    {name:'近距斜视角VP(Δ)', v22:'20-25Δ', v23:'25Δ', tgt:'<15Δ', pri:'🔴 最高', pct:40, note:'近距比远距大，集合不足型'},
+    {name:'立体视觉(Randot)', v22:'—', v23:'8/8', tgt:'维持8/8', pri:'🟢 中', pct:100, note:'完全正常，大脑视觉处理完整'},
+    {name:'视力右眼OD', v22:'6/6⁻', v23:'6/6', tgt:'维持6/6', pri:'🟢 中', pct:100, note:'始终正常'},
+    {name:'视力左眼OS', v22:'6/6⁻', v23:'6/6', tgt:'维持6/6', pri:'🟢 中', pct:100, note:'始终正常'},
+  ],
+  ear: [
+    {name:'左耳语言识别率', v22:'—', v23:'88%(75dB)', tgt:'维持≥90%', pri:'🔴 最高', pct:88, note:'从96%降至88%，需关注'},
+    {name:'左耳PTA(纯音听阈)', v22:'~35dB', v23:'~35-40dB', tgt:'不进一步退步', pri:'🔴 最高', pct:55, note:'轻-中度→轻-中重度'},
+    {name:'右耳PTA', v22:'正常', v23:'~5dB HL', tgt:'维持正常', pri:'🟢 中', pct:100, note:'始终正常'},
+    {name:'助听器佩戴依从性', v22:'未佩戴', v23:'偶尔不戴', tgt:'每天全天', pri:'🔴 最高', pct:60, note:'眼镜+助听器不兼容问题'},
+    {name:'FM系统学校使用', v22:'—', v23:'规律使用', tgt:'维持', pri:'🟡 高', pct:90, note:'学校提供，校董会负责'},
+  ]
+};
+
+const TRAINING = {
+  leg: [
+    {name:'靠墙拉伸小腿', target:'腓肠肌痉挛→足下垂', dose:'3次×30秒/天', method:'面墙站立，右腿后迈，脚跟踩实，膝盖伸直，身体前倾保持30秒', record:'脚跟能否完全踩地（1-5星）', warn:'膝盖必须保持伸直效果才好', imp:'r'},
+    {name:'坐姿直腿够脚尖', target:'腘绳肌偏紧', dose:'2次×30秒/天', method:'坐地板，腿伸直，缓慢前弯，手尽量够脚尖保持30秒', record:'手指够到哪里（踝/脚背/脚尖）', warn:'不要弹振，缓慢持续拉伸', imp:'r'},
+    {name:'单脚站立——右腿', target:'SLS 1-2秒→目标8秒', dose:'3组/天', method:'站立，左腿抬起，右腿支撑，秒表计时。初始可扶墙，逐步脱手', record:'秒数（秒表记录）', warn:'先扶墙，每周减少支撑', imp:'r'},
+    {name:'踮脚尖练习', target:'腓肠肌主动控制', dose:'2组×10次/天', method:'扶椅背，双脚踮起2秒，缓慢放下。进阶：右脚单独踮', record:'右脚能否独立踮起（次数）', imp:'a'},
+    {name:'双脚跳→右脚单跳', target:'Hop 0次→目标3次', dose:'5分钟/天', method:'先双脚跳，再尝试右脚单跳，数次数', record:'右脚单腿跳次数', warn:'疲劳时停止，避免代偿', imp:'a'},
+  ],
+  eye: [
+    {name:'PRC push-up训练', target:'外斜视+集合不足', dose:'5分钟/天，每天坚持', method:'拿一支笔，从手臂长度缓慢靠近鼻尖，保持看清楚直到出现重影，记录最近清晰距离', record:'最近清晰距离（cm）每周记录', warn:'⚠️ 停训2周退步显著！必须每天坚持，不可中断', imp:'r'},
+    {name:'Patanol眼药水', target:'过敏性结膜炎', dose:'每天2次，双眼', method:'每次1滴，双眼，早晚各一次。有效期至2025-06-13', record:'是否按时点（✓/✗）', imp:'r'},
+    {name:'视觉追视练习', target:'眼肌控制+追视训练', dose:'5分钟/天', method:'用手指从左到右缓慢移动，让晨宇眼睛追踪（头不动），越过中线到右侧', record:'能否追视过中线到右侧（是/否）', imp:'a'},
+  ],
+  ear: [
+    {name:'助听器每日佩戴', target:'左耳传导性损失', dose:'全天（至少学校时段）', method:'每天早上起床即佩戴，学校全天使用', record:'佩戴时长（小时/天）', warn:'⚠️ 眼镜+助听器不舒服需解决，晨宇同意尝试重新适应', imp:'r'},
+    {name:'FM系统使用（学校）', target:'课堂听觉优化', dose:'每个上课日', method:'上课时使用学校FM系统，坐前排右耳朝向老师', record:'是否使用FM系统（✓/✗）', imp:'r'},
+  ],
+  hand: [
+    {name:'无人机/电子制作', target:'右手主动使用+视觉集合训练', dose:'30分钟+/次，3次+/周', method:'组装无人机或电子制作项目，特别关注右手主动参与（拿螺丝刀、稳定零件）', record:'右手主动操作次数，视频AI分析', warn:'这是目前综合ROI最高的单一活动', imp:'r'},
+    {name:'顺序触指练习', target:'右手精细控制', dose:'3组×10次/天', method:'右手拇指依次触碰食指→中指→无名指→小指，再反向', record:'能否独立完成（是/否，速度）', imp:'a'},
+  ]
+};
+
+const ROI_DATA = [
+  {name:'🛸 无人机制作', hand:0.65, gait:0.00, vision:0.70, rec:'hot', dose:'≥30分钟，3次+/周', tip:'近距离精细+集合训练三合一，综合ROI最高'},
+  {name:'🏊 游泳', hand:0.10, gait:0.85, vision:0.10, rec:'hot', dose:'30分钟，2-3次/周', tip:'腿脚训练ROI最高，腓肠肌自然拉伸，推荐每周2次'},
+  {name:'⚽ 足球', hand:0.00, gait:0.35, vision:0.15, rec:'ok', dose:'≤40分钟/次', tip:'⚠️ 超过40分钟疲劳→步态代偿加重！严格控时'},
+  {name:'🚴 骑自行车', hand:0.00, gait:0.78, vision:0.20, rec:'ok', dose:'20-30分钟/次', tip:'踩踏节律训练腓肠肌收缩-放松，推荐新增'},
+  {name:'🏀 篮球', hand:0.20, gait:0.10, vision:0.60, rec:'ok', dose:'20-30分钟/次', tip:'追球动作是最好的自然追视训练'},
+  {name:'🏸 羽毛球', hand:0.25, gait:0.15, vision:0.75, rec:'ok', dose:'20分钟/次', tip:'高速追球极佳视觉训练'},
+  {name:'🏃 长距离跑步', hand:0.00, gait:0.05, vision:0.00, rec:'aux', dose:'暂不推荐', tip:'⚠️ 主动背屈0°，跑步会加重代偿损伤，待背屈≥10°后考虑'},
+];
+
+const LOG_ITEMS = [
+  {ic:'🦴', name:{zh:'靠墙拉伸小腿（3×30s）',en:'Wall Calf Stretch (3×30s)',fr:'Étirement mollet (3×30s)'}, imp:'r'},
+  {ic:'🦴', name:{zh:'坐姿够脚尖（2×30s）',en:'Seated Hamstring (2×30s)',fr:'Étirement ischio (2×30s)'}, imp:'r'},
+  {ic:'🦴', name:{zh:'单脚站立右腿（秒）',en:'R.Leg Stand (sec)',fr:'Station unipodal D (sec)'}, imp:'r'},
+  {ic:'🦴', name:{zh:'踮脚尖（2×10）',en:'Tiptoe (2×10)',fr:'Sur la pointe (2×10)'}, imp:'a'},
+  {ic:'🦴', name:{zh:'右脚单跳（次）',en:'R.Leg Hop (reps)',fr:'Saut unipodal D (fois)'}, imp:'a'},
+  {ic:'👁️', name:{zh:'PRC push-up训练（5分钟）',en:'PRC Push-up (5 min)',fr:'PRC push-up (5 min)'}, imp:'r'},
+  {ic:'👁️', name:{zh:'Patanol眼药水（2次）',en:'Patanol Drops (×2)',fr:'Gouttes Patanol (×2)'}, imp:'r'},
+  {ic:'👁️', name:{zh:'视觉追视练习（5分钟）',en:'Visual Tracking (5 min)',fr:'Suivi visuel (5 min)'}, imp:'a'},
+  {ic:'👂', name:{zh:'助听器佩戴（小时）',en:'Hearing Aid (hrs)',fr:'Appareil auditif (h)'}, imp:'r'},
+  {ic:'👂', name:{zh:'FM系统使用（学校）',en:'FM System (school)',fr:'Système FM (école)'}, imp:'r'},
+  {ic:'✋', name:{zh:'无人机/电子制作（分钟）',en:'Drone/Electronics (min)',fr:'Drone/Électronique (min)'}, imp:'r'},
+  {ic:'✋', name:{zh:'顺序触指练习（3×10）',en:'Finger Sequencing (3×10)',fr:'Séquence doigts (3×10)'}, imp:'a'},
+  {ic:'⚽', name:{zh:'运动类型+时长（分钟）',en:'Sport type + duration (min)',fr:'Sport + durée (min)'}, imp:'a'},
+  {ic:'🌟', name:{zh:'今日状态（1-5星）',en:'Today\'s Energy (1-5★)',fr:'Énergie du jour (1-5★)'}, imp:''},
+];
+
+const MONTHLY_ITEMS = [
+  {key:'sls_r', lbl:{zh:'右腿单脚站立（秒）',en:'R.Leg Stand (sec)',fr:'Station unipodal D (sec)'}, baseline:'1-2秒', target:'≥8秒', unit:'sec'},
+  {key:'hop_r', lbl:{zh:'右脚单腿跳（次）',en:'R.Leg Hop (reps)',fr:'Saut unipodal D (fois)'}, baseline:'0次', target:'≥3次', unit:'reps'},
+  {key:'sls_l', lbl:{zh:'左腿单脚站立（秒）',en:'L.Leg Stand (sec)',fr:'Station unipodal G (sec)'}, baseline:'16秒', target:'≥16秒', unit:'sec'},
+  {key:'reach', lbl:{zh:'坐姿够脚尖',en:'Seated Reach',fr:'Flexion assis'}, baseline:'够不到', target:'够到脚尖', unit:''},
+  {key:'tiptoe', lbl:{zh:'踮脚尖右脚（次）',en:'Tiptoe R.foot (reps)',fr:'Pointe pied D (fois)'}, baseline:'无法', target:'10次', unit:'reps'},
+  {key:'prc', lbl:{zh:'PRC集合近点（cm）',en:'PRC (cm)',fr:'PPC (cm)'}, baseline:'7-9cm', target:'<5cm', unit:'cm'},
+  {key:'strab', lbl:{zh:'外斜出现频率（1-5星）',en:'Strabismus freq (1-5★)',fr:'Strabisme fréq (1-5★)'}, baseline:'疲劳时明显', target:'4-5星', unit:''},
+  {key:'rhand', lbl:{zh:'右手主动使用（1-5星）',en:'R.Hand Use (1-5★)',fr:'Main D (1-5★)'}, baseline:'低', target:'4星+', unit:''},
+  {key:'finger', lbl:{zh:'顺序触指——右手',en:'Finger Seq. R.Hand',fr:'Séquence doigts D'}, baseline:'无法', target:'流畅完成', unit:''},
+  {key:'ha', lbl:{zh:'助听器佩戴率（%）',en:'HA Compliance (%)',fr:'Conformité app. (%)'}, baseline:'—', target:'≥90%', unit:'%'},
+  {key:'walk10', lbl:{zh:'10米步行时间（秒）',en:'10m Walk (sec)',fr:'Marche 10m (sec)'}, baseline:'—', target:'持续下降', unit:'sec'},
+  {key:'gait_sym', lbl:{zh:'步态对称性（%）',en:'Gait Symmetry (%)',fr:'Symétrie marche (%)'}, baseline:'—', target:'≤10%差异', unit:'%'},
+  {key:'drone', lbl:{zh:'无人机独立完成度（1-5星）',en:'Drone Independence (1-5★)',fr:'Drone autonomie (1-5★)'}, baseline:'部分协助', target:'4星', unit:''},
+  {key:'fatigue', lbl:{zh:'疲劳评分（1-5）',en:'Fatigue (1-5)',fr:'Fatigue (1-5)'}, baseline:'—', target:'≤2', unit:''},
+];
+
+// ══ State ══════════════════════════════════════════════════════
+let selectedSport = {id:'drone',ic:'🛸',n:'无人机'};
 let videoFile = null;
-let videoBlob = null;
 let mediaStream = null;
 let mediaRecorder = null;
 let recChunks = [];
-let recInterval = null;
-let recSeconds = 0;
-let starState = {hand:0, gait:0, mood:0};
-let history = JSON.parse(localStorage.getItem('cp_analysis_history') || '[]');
-let deferredInstall = null;
+let logData = JSON.parse(localStorage.getItem('cp_log')||'{}');
+let monthlyData = JSON.parse(localStorage.getItem('cp_monthly')||'{}');
+let analysisHistory = JSON.parse(localStorage.getItem('cp_analysis')||'[]');
 
-// ── PWA install ───────────────────────────────────────────────
-window.addEventListener('beforeinstallprompt', e => {
-  e.preventDefault();
-  deferredInstall = e;
-  document.getElementById('install-banner').style.display = 'flex';
-});
-window.addEventListener('appinstalled', () => {
-  document.getElementById('install-banner').style.display = 'none';
-});
-function installPWA() {
-  if (deferredInstall) { deferredInstall.prompt(); deferredInstall = null; }
-}
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js').catch(()=>{});
-}
-
-// ── Language ──────────────────────────────────────────────────
-function setLang(l, btn) {
-  lang = l;
-  localStorage.setItem('cp_lang', l);
-  document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  applyTranslations();
+// ══ Build UI ════════════════════════════════════════════════════
+function buildAll() {
+  buildKPI();
+  buildTimeline();
+  buildMetrics();
+  buildTraining();
+  buildROI();
+  buildLogForm();
+  buildMonthly();
   buildSportChips();
-  buildLogActivities();
-  renderHistory();
+  applyI18n();
 }
 
-function t(key) { return (T[lang] || T.zh)[key] || T.zh[key] || key; }
-
-function applyTranslations() {
-  document.querySelectorAll('[data-i18n]').forEach(el => {
-    const k = el.dataset.i18n;
-    el.textContent = t(k);
-  });
-  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
-    el.placeholder = t(el.dataset.i18nPlaceholder);
-  });
-  document.getElementById('install-text').textContent = t('installText');
-  document.getElementById('install-btn').textContent = t('installBtn');
-}
-
-// ── Sports ────────────────────────────────────────────────────
-function buildSportChips() {
-  const sports = t('sports');
-  const scroll = document.getElementById('sport-scroll');
-  scroll.innerHTML = sports.map((s,i) =>
-    `<div class="sport-chip${i===0?' sel':''}" onclick="selectSport(this,'${s.id}','${s.icon}','${s.name}')">
-      <span class="sport-chip-icon">${s.icon}</span>
-      <span class="sport-chip-name">${s.name}</span>
-    </div>`
-  ).join('');
-  const first = sports[0];
-  selectedSport = {id:first.id, icon:first.icon, name:first.name};
-}
-
-function selectSport(el, id, icon, name) {
-  document.querySelectorAll('.sport-chip').forEach(c => c.classList.remove('sel'));
-  el.classList.add('sel');
-  selectedSport = {id, icon, name};
-}
-
-// ── Camera ────────────────────────────────────────────────────
-async function startCamera() {
-  try {
-    mediaStream = await navigator.mediaDevices.getUserMedia({
-      video:{facingMode:'environment', width:{ideal:1280}, height:{ideal:720}},
-      audio:false
-    });
-    const vid = document.getElementById('live-video');
-    vid.srcObject = mediaStream;
-    vid.style.display = 'block';
-    document.getElementById('cam-placeholder').style.display = 'none';
-    document.getElementById('cam-controls-idle').style.display = 'none';
-    document.getElementById('cam-controls-live').style.display = 'flex';
-    vid.play();
-  } catch(e) {
-    showToast('⚠️ ' + (e.name === 'NotAllowedError' ? 'Camera permission denied' : e.message));
-  }
-}
-
-function stopCamera() {
-  if (mediaStream) { mediaStream.getTracks().forEach(t => t.stop()); mediaStream = null; }
-  const vid = document.getElementById('live-video');
-  vid.style.display = 'none'; vid.srcObject = null;
-  document.getElementById('cam-placeholder').style.display = 'flex';
-  document.getElementById('cam-controls-idle').style.display = 'flex';
-  document.getElementById('cam-controls-live').style.display = 'none';
-  document.getElementById('cam-controls-recording').style.display = 'none';
-}
-
-function startRecording() {
-  recChunks = []; recSeconds = 0;
-  const options = MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
-    ? {mimeType:'video/webm;codecs=vp9'}
-    : MediaRecorder.isTypeSupported('video/webm') ? {mimeType:'video/webm'} : {};
-  mediaRecorder = new MediaRecorder(mediaStream, options);
-  mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recChunks.push(e.data); };
-  mediaRecorder.onstop = () => {
-    const mime = mediaRecorder.mimeType || 'video/webm';
-    videoBlob = new Blob(recChunks, {type: mime});
-    videoFile = new File([videoBlob], 'recording.webm', {type: mime});
-    showPreview(URL.createObjectURL(videoBlob));
-  };
-  mediaRecorder.start(100);
-  clearInterval(recInterval);
-  recInterval = setInterval(() => {
-    recSeconds++;
-    const m = Math.floor(recSeconds/60);
-    const s = recSeconds % 60;
-    document.getElementById('rec-timer').textContent = m + ':' + String(s).padStart(2,'0');
-    if (recSeconds >= 90) stopRecording();
-  }, 1000);
-  document.getElementById('cam-controls-live').style.display = 'none';
-  document.getElementById('cam-controls-recording').style.display = 'flex';
-}
-
-function stopRecording() {
-  clearInterval(recInterval);
-  if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
-  if (mediaStream) { mediaStream.getTracks().forEach(t => t.stop()); mediaStream = null; }
-  document.getElementById('live-video').style.display = 'none';
-  document.getElementById('cam-controls-recording').style.display = 'none';
-}
-
-function showPreview(url) {
-  const pv = document.getElementById('preview-video');
-  pv.src = url; pv.style.display = 'block';
-  document.getElementById('cam-placeholder').style.display = 'none';
-  document.getElementById('cam-controls-recording').style.display = 'none';
-  document.getElementById('cam-controls-preview').style.display = 'flex';
-}
-
-function confirmVideo() {
-  document.getElementById('cam-controls-preview').style.display = 'none';
-  document.getElementById('cam-controls-confirmed').style.display = 'flex';
-  document.getElementById('analyze-btn').disabled = false;
-}
-
-function retakeVideo() {
-  videoFile = null; videoBlob = null;
-  const pv = document.getElementById('preview-video');
-  pv.src = ''; pv.style.display = 'none';
-  document.getElementById('cam-placeholder').style.display = 'flex';
-  document.getElementById('cam-controls-preview').style.display = 'none';
-  document.getElementById('cam-controls-confirmed').style.display = 'none';
-  document.getElementById('cam-controls-idle').style.display = 'flex';
-  document.getElementById('analyze-btn').disabled = true;
-  document.getElementById('results-wrap').innerHTML = '';
-}
-
-function handleFile(f) {
-  if (!f) return;
-  videoFile = f;
-  showPreview(URL.createObjectURL(f));
-}
-
-// ── Analysis ──────────────────────────────────────────────────
-async function startAnalysis() {
-  const btn = document.getElementById('analyze-btn');
-  btn.disabled = true;
-  btn.querySelector('[data-i18n]').textContent = t('analyzeStart');
-
-  const pw = document.getElementById('progress-wrap');
-  pw.style.display = 'flex';
-  document.getElementById('results-wrap').innerHTML = '';
-  pw.innerHTML = t('steps').map((s,i) =>
-    `<div class="step" id="step-${i}"><div class="step-dot"></div><span class="step-txt">${s}</span></div>`
-  ).join('');
-
-  const delays = [400, 900, 1600, 2400, 3300, 4200];
-  let imageBase64 = null;
-  if (videoFile) imageBase64 = await extractFrame(videoFile);
-
-  for (let i = 0; i < 6; i++) {
-    await sleep(delays[i]);
-    if (i > 0) { document.getElementById('step-'+(i-1)).classList.remove('active'); document.getElementById('step-'+(i-1)).classList.add('done'); }
-    document.getElementById('step-'+i).classList.add('active');
-  }
-
-  try {
-    const result = await callAPI(imageBase64);
-    await sleep(500);
-    for (let i = 0; i < 6; i++) { const s = document.getElementById('step-'+i); s.classList.remove('active'); s.classList.add('done'); }
-    await sleep(300);
-    pw.style.display = 'none';
-    renderResults(result);
-    saveHistory(result);
-  } catch(e) {
-    pw.style.display = 'none';
-    document.getElementById('results-wrap').innerHTML =
-      `<div class="ins alert"><div class="ins-head">Error</div><div class="ins-body">${e.message}</div></div>`;
-  }
-
-  btn.disabled = false;
-  btn.querySelector('[data-i18n]').textContent = t('analyzeBtn');
-}
-
-function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
-
-async function extractFrame(file) {
-  return new Promise(resolve => {
-    const video = document.createElement('video');
-    const url = URL.createObjectURL(file);
-    video.src = url; video.currentTime = 1;
-    video.oncanplay = () => {
-      const c = document.createElement('canvas');
-      c.width = 640; c.height = 360;
-      c.getContext('2d').drawImage(video, 0, 0, 640, 360);
-      URL.revokeObjectURL(url);
-      resolve(c.toDataURL('image/jpeg', 0.82).split(',')[1]);
-    };
-    video.onerror = () => { URL.revokeObjectURL(url); resolve(null); };
-  });
-}
-
-async function callAPI(imageBase64) {
-  const sport = selectedSport?.name || '运动';
-  const langInstructions = {
-    zh: '请用中文输出所有note、insights和next_focus字段。',
-    en: 'Please output all note, insights and next_focus fields in English.',
-    fr: 'Veuillez écrire tous les champs note, insights et next_focus en français.'
-  };
-
-  const system = `You are an expert AI motion analyst specialising in paediatric cerebral palsy rehabilitation. Analyse the child's movement and output ONLY valid JSON with this exact structure:
-{"overall":number,"layer1":{"shoulder":{"score":number,"left":number,"right":number,"note":"string"},"elbow":{"score":number,"left":number,"right":number,"note":"string"},"wrist":{"score":number,"left":number,"right":number,"note":"string"},"ankle":{"score":number,"left":number,"right":number,"note":"string"}},"layer2":{"symmetry":{"score":number,"note":"string"},"gait_inward":{"score":number,"angle":number,"note":"string"},"right_hand_use":{"score":number,"pct":number,"note":"string"},"bimanual":{"score":number,"note":"string"},"balance":{"score":number,"note":"string"}},"insights":[{"type":"good","title":"string","body":"string"},{"type":"warn","title":"string","body":"string"},{"type":"alert","title":"string","body":"string"}],"next_focus":"string","rehab_value":number}
-Scores 0-100. The child is 8 years old with suspected right-sided hemiplegic CP: right hand underuse, right foot inward gait, right eye exotropia. ${langInstructions[lang]}`;
-
-  const content = imageBase64
-    ? [{type:'image',source:{type:'base64',media_type:'image/jpeg',data:imageBase64}},
-       {type:'text',text:`Activity: ${sport}. Analyse this frame for the 8-year-old child with right hemiplegia. Output JSON only.`}]
-    : [{type:'text',text:`Activity: ${sport}. No video uploaded — generate a representative assessment for an 8-year-old with right hemiplegic CP doing ${sport}, to help the parent understand which metrics to watch. Output JSON only.`}];
-
-  const res = await fetch('/api/analyze', {
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({ system, messages:[{role:'user',content}] })
-  });
-  if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e.error?.message || 'API error'); }
-  const data = await res.json();
-  const raw = data.content[0].text.trim().replace(/```json|```/g,'').trim();
-  return JSON.parse(raw);
-}
-
-// ── Render results ────────────────────────────────────────────
-function renderResults(r) {
-  const sport = selectedSport;
-  const date = new Date().toLocaleDateString(lang === 'zh' ? 'zh-CN' : lang === 'fr' ? 'fr-CA' : 'en-CA', {month:'short', day:'numeric'});
-  const sc = n => n >= 70 ? 'score-hi' : n >= 50 ? 'score-md' : 'score-lo';
-  const fi = n => n >= 70 ? 'fill-hi' : n >= 50 ? 'fill-md' : 'fill-lo';
-
-  const card = (name, score, detail) => `
-    <div class="sc">
-      <div class="sc-top"><span class="sc-name">${name}</span><span class="sc-num ${sc(score)}">${score}</span></div>
-      <div class="sc-bar"><div class="sc-fill ${fi(score)}" style="width:0%" data-w="${score}%"></div></div>
-      <div class="sc-note">${detail}</div>
+function buildKPI() {
+  const g = document.getElementById('kpi-grid');
+  g.innerHTML = KPI_DATA.map(k => {
+    const stored = monthlyData[k.key];
+    const val = stored !== undefined ? stored : k.val;
+    const pct = k.invert ? Math.max(0, 100 - (val/k.max*100)) : Math.min(100, val/k.max*100);
+    const r = 26; const circ = 2*Math.PI*r;
+    const offset = circ - (pct/100)*circ;
+    const score = k.invert ? (val <= k.target ? 100 : Math.round((k.max-val)/(k.max-k.target)*80)) : Math.round(val/k.target*100);
+    const cl = score >= 80 ? 'badge-ok' : score >= 50 ? 'badge-warn' : 'badge-alert';
+    const lbl = k.label[lang] || k.label.zh;
+    return `<div class="kpi-card" onclick="switchNav('metrics',document.getElementById('ni-metrics'))">
+      <div class="ring-wrap">
+        <svg class="ring-svg" width="64" height="64" viewBox="0 0 64 64">
+          <circle class="ring-bg" cx="32" cy="32" r="${r}"/>
+          <circle class="ring-val" cx="32" cy="32" r="${r}" stroke="${k.color}"
+            stroke-dasharray="${circ}" stroke-dashoffset="${offset}"/>
+        </svg>
+        <div class="ring-label">${val}${k.unit}</div>
+      </div>
+      <div class="kpi-name">${k.icon} ${lbl}</div>
+      <span class="kpi-badge ${cl}">${k.target}${k.unit}目标</span>
     </div>`;
-
-  const l1 = r.layer1, l2 = r.layer2;
-  const insHtml = (r.insights||[]).map(i =>
-    `<div class="ins ${i.type}"><div class="ins-head">${i.title}</div><div class="ins-body">${i.body}</div></div>`
-  ).join('');
-
-  document.getElementById('results-wrap').innerHTML = `
-    <div class="result-hero">
-      <div>
-        <div class="result-sport">${sport.icon} ${sport.name}</div>
-        <div class="result-date">${date} · ${t('rehabVal')} ${r.rehab_value}</div>
-      </div>
-      <div class="big-score">
-        <div class="big-num ${sc(r.overall)}">${r.overall}</div>
-        <div class="big-lbl">${t('overall')}</div>
-      </div>
-    </div>
-
-    <div class="layer-title">🦴 ${t('layer1')}</div>
-    <div class="score-grid">
-      ${card(t('shoulder'), l1.shoulder.score, `L ${l1.shoulder.left}° / R ${l1.shoulder.right}° · ${l1.shoulder.note}`)}
-      ${card(t('elbow'),    l1.elbow.score,    `L ${l1.elbow.left}° / R ${l1.elbow.right}° · ${l1.elbow.note}`)}
-      ${card(t('wrist'),    l1.wrist.score,    `L ${l1.wrist.left}° / R ${l1.wrist.right}° · ${l1.wrist.note}`)}
-      ${card(t('ankle'),    l1.ankle.score,    `L ${l1.ankle.left}° / R ${l1.ankle.right}° · ${l1.ankle.note}`)}
-    </div>
-
-    <div class="layer-title">🏃 ${t('layer2')}</div>
-    <div class="score-grid">
-      ${card(t('symmetry'),    l2.symmetry.score,     l2.symmetry.note)}
-      ${card(t('gaitInward'),  l2.gait_inward.score,  `${l2.gait_inward.angle}° · ${l2.gait_inward.note}`)}
-      ${card(t('rightHandUse'),l2.right_hand_use.score,`${l2.right_hand_use.pct}% · ${l2.right_hand_use.note}`)}
-      ${card(t('bimanual'),    l2.bimanual.score,     l2.bimanual.note)}
-      ${card(t('balance'),     l2.balance.score,      l2.balance.note)}
-    </div>
-
-    <div class="layer-title">💡 ${t('aiInsights')}</div>
-    <div class="insight-list">${insHtml}</div>
-    <div class="ins next" style="margin-top:6px">
-      <div class="ins-head">${t('nextFocus')}</div>
-      <div class="ins-body">${r.next_focus}</div>
-    </div>
-  `;
-
-  // animate bars
-  requestAnimationFrame(() => {
-    document.querySelectorAll('.sc-fill[data-w]').forEach(el => {
-      const w = el.dataset.w;
-      setTimeout(() => el.style.width = w, 80);
-    });
-  });
-  document.getElementById('main').scrollTo({top: document.getElementById('results-wrap').offsetTop - 20, behavior:'smooth'});
+  }).join('');
 }
 
-// ── History ───────────────────────────────────────────────────
-function saveHistory(r) {
-  const rec = {
-    date: new Date().toISOString(),
-    sport: {...selectedSport},
-    overall: r.overall,
-    rehab: r.rehab_value,
-    right_hand: r.layer2.right_hand_use.pct,
-    gait_angle: r.layer2.gait_inward.angle,
-    symmetry: r.layer2.symmetry.score
-  };
-  history.unshift(rec);
-  if (history.length > 40) history = history.slice(0,40);
-  localStorage.setItem('cp_analysis_history', JSON.stringify(history));
-}
-
-function renderHistory() {
-  const list = document.getElementById('hist-list');
-  if (!history.length) {
-    list.innerHTML = `<div class="empty-state">${t('emptyHistory')}</div>`;
-    return;
-  }
-  list.innerHTML = history.map((r,i) => {
-    const prev = history[i+1];
-    const delta = prev ? r.overall - prev.overall : null;
-    const d = new Date(r.date);
-    const dateStr = d.toLocaleDateString(lang==='zh'?'zh-CN':lang==='fr'?'fr-CA':'en-CA', {month:'short', day:'numeric'});
-    const dColor = delta === null ? '' : delta > 0 ? 'color:var(--green)' : delta < 0 ? 'color:var(--red-mid)' : '';
-    const dText = delta === null ? '' : (delta > 0 ? '↑' : delta < 0 ? '↓' : '→') + Math.abs(delta);
-    return `<div class="hist-item">
-      <div class="hist-top">
-        <div><div class="hist-sport">${r.sport.icon} ${r.sport.name}</div><div class="hist-date">${dateStr}</div></div>
-        <div style="text-align:right">
-          <div class="hist-score-num ${r.overall>=70?'score-hi':r.overall>=50?'score-md':'score-lo'}">${r.overall}</div>
-          <div style="font-size:11px;font-weight:500;${dColor}">${dText}</div>
+function buildTimeline() {
+  ['motor','eye','ear'].forEach(cat => {
+    const el = document.getElementById('tl-'+cat);
+    const items = TIMELINE[cat];
+    const tagClass = {motor:'tag-motor',eye:'tag-eye',ear:'tag-ear'}[cat];
+    const dotColor = {motor:'var(--mint)',eye:'#2e6ed4',ear:'#7e4ed4'}[cat];
+    el.innerHTML = items.map((it,i) => `
+      <div class="tl-item">
+        <div class="tl-line">
+          <div class="tl-dot" style="background:${dotColor}"></div>
+          ${i < items.length-1 ? '<div class="tl-connector"></div>' : ''}
         </div>
+        <div style="flex:1;margin-bottom:${i<items.length-1?'0':'4'}px">
+          <div class="tl-content">
+            <div class="tl-date">${it.date} · ${it.age}</div>
+            <div class="tl-place">${it.place}</div>
+            <div class="tl-find">${it.find}</div>
+            <span class="tl-tag ${tagClass}">${it.dx}</span>
+          </div>
+        </div>
+      </div>`).join('');
+  });
+}
+
+function buildMetrics() {
+  ['motor','eye','ear'].forEach(cat => {
+    const el = document.getElementById('metrics-'+cat);
+    const items = METRICS[cat];
+    const barColor = {motor:'var(--mint)',eye:'#2e6ed4',ear:'#7e4ed4'}[cat];
+    el.innerHTML = items.map(m => {
+      const pcl = m.pri.includes('🔴') ? 'pri-red' : m.pri.includes('🟡') ? 'pri-amber' : 'pri-green';
+      const priTxt = m.pri.includes('🔴') ? (lang==='zh'?'最高':lang==='fr'?'Critique':'Critical') : m.pri.includes('🟡') ? (lang==='zh'?'高':lang==='fr'?'Élevé':'High') : (lang==='zh'?'中':lang==='fr'?'Moyen':'Medium');
+      return `<div class="metric-row">
+        <div class="mr-top">
+          <div class="mr-name">${m.name}</div>
+          <span class="mr-pri ${pcl}">${priTxt}</span>
+        </div>
+        <div class="mr-bar"><div class="mr-fill" style="width:${m.pct}%;background:${barColor}"></div></div>
+        <div class="mr-meta">
+          <span>2022: ${m.v22}</span>
+          <span>2023: ${m.v23}</span>
+          <span class="mr-target">目标: ${m.tgt}</span>
+        </div>
+        ${m.note ? `<div style="font-size:10px;color:var(--muted);margin-top:3px;font-style:italic">${m.note}</div>` : ''}
+      </div>`;
+    }).join('');
+  });
+}
+
+function buildTraining() {
+  const cats = ['leg','eye','ear','hand'];
+  const cardClass = {leg:'',eye:'eye',ear:'ear',hand:'hand'};
+  cats.forEach(cat => {
+    const el = document.getElementById('train-'+cat);
+    el.innerHTML = TRAINING[cat].map(t => `
+      <div class="train-card ${cardClass[cat]}">
+        <div class="tc-top">
+          <div class="tc-name">${t.name}</div>
+          <span class="tc-dose">${t.dose}</span>
+        </div>
+        <div class="tc-target" style="color:var(--muted);font-size:11px">→ ${t.target}</div>
+        <div class="tc-method">${t.method}</div>
+        <div style="font-size:10px;color:var(--em);margin-top:4px">📊 ${t.record}</div>
+        ${t.warn ? `<div class="tc-warn">${t.warn}</div>` : ''}
+      </div>`).join('');
+  });
+}
+
+function buildROI() {
+  const el = document.getElementById('roi-list');
+  el.innerHTML = ROI_DATA.map(r => {
+    const recC = r.rec==='hot' ? 'rec-hot' : r.rec==='ok' ? 'rec-ok' : 'rec-aux';
+    const recT = r.rec==='hot' ? '强烈推荐' : r.rec==='ok' ? '推荐' : '暂缓/辅助';
+    return `<div class="roi-card">
+      <div class="roi-top">
+        <div class="roi-name">${r.name} · <span style="font-size:10px;color:var(--muted)">${r.dose}</span></div>
+        <span class="roi-rec ${recC}">${recT}</span>
       </div>
-      <div class="hist-bars">
-        <div class="hbar-row"><span class="hbar-lbl">${t('rightHandUse')}</span><div class="hbar-track"><div class="hbar-fill" style="width:${r.right_hand}%"></div></div><span class="hbar-val">${r.right_hand}%</span></div>
-        <div class="hbar-row"><span class="hbar-lbl">${t('symmetry')}</span><div class="hbar-track"><div class="hbar-fill" style="width:${r.symmetry}%;background:var(--blue-mid)"></div></div><span class="hbar-val">${r.symmetry}</span></div>
+      <div class="roi-bars">
+        <div class="roi-bar-row"><span class="roi-bar-lbl">右手</span><div class="roi-bar-track"><div class="roi-bar-fill" style="width:${r.hand*100}%"></div></div><span style="font-size:9px;color:var(--muted)">${r.hand}</span></div>
+        <div class="roi-bar-row"><span class="roi-bar-lbl">步态</span><div class="roi-bar-track"><div class="roi-bar-fill b" style="width:${r.gait*100}%"></div></div><span style="font-size:9px;color:var(--muted)">${r.gait}</span></div>
+        <div class="roi-bar-row"><span class="roi-bar-lbl">视觉</span><div class="roi-bar-track"><div class="roi-bar-fill c" style="width:${r.vision*100}%"></div></div><span style="font-size:9px;color:var(--muted)">${r.vision}</span></div>
+      </div>
+      ${r.tip ? `<div class="roi-tip">${r.tip}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function buildLogForm() {
+  const days = ['一','二','三','四','五','六','日'];
+  const today = new Date().getDay();
+  const el = document.getElementById('log-form');
+  el.innerHTML = LOG_ITEMS.map((it,idx) => {
+    const name = typeof it.name === 'object' ? (it.name[lang]||it.name.zh) : it.name;
+    const impC = it.imp==='r' ? 'r' : it.imp==='a' ? 'a' : '';
+    const impT = it.imp==='r' ? (lang==='fr'?'Obligatoire':'必做') : it.imp==='a' ? (lang==='fr'?'Important':'重要') : '';
+    return `<div class="log-item">
+      <div class="log-head">
+        <div class="log-name">${it.ic} ${name}</div>
+        ${impC ? `<span class="log-imp ${impC}">${impT}</span>` : ''}
+      </div>
+      <div class="log-row">
+        ${days.map((d,di) => `<div class="log-day">
+          <div class="log-day-lbl">${d}</div>
+          <input class="log-input" id="log_${idx}_${di}" type="text" placeholder="${di===today?'今':''}">
+        </div>`).join('')}
       </div>
     </div>`;
   }).join('');
 }
 
-// ── Log panel ─────────────────────────────────────────────────
-function buildLogActivities() {
-  const acts = t('logActs');
-  document.getElementById('log-activities').innerHTML = acts.map(a =>
-    `<button class="chk" onclick="this.classList.toggle('on')">${a}</button>`
-  ).join('');
+function buildMonthly() {
+  const now = new Date();
+  const monthStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  const stored = monthlyData[monthStr] || {};
+  const el = document.getElementById('monthly-form');
+  el.innerHTML = MONTHLY_ITEMS.map(m => {
+    const lbl = typeof m.lbl === 'object' ? (m.lbl[lang]||m.lbl.zh) : m.lbl;
+    const val = stored[m.key] || '';
+    return `<div class="month-card">
+      <div class="month-name">${lbl}</div>
+      <div class="month-row">
+        <span class="month-lbl" style="color:var(--muted);font-size:10px">基线: ${m.baseline}</span>
+        <input class="month-input" id="mo_${m.key}" type="text" value="${val}" placeholder="${m.target}">
+        <span class="month-target">目标: ${m.target}</span>
+      </div>
+    </div>`;
+  }).join('');
 }
 
-function setStar(type, n) {
-  starState[type] = n;
-  document.querySelectorAll(`#stars-${type} .star`).forEach((s,i) => s.classList.toggle('lit', i < n));
+function buildSportChips() {
+  const sports = t('sports');
+  const el = document.getElementById('sport-scroll');
+  el.innerHTML = sports.map(s => `
+    <div class="sport-chip${s.id===selectedSport.id?' on':''}" onclick="selectSport(this,'${s.id}','${s.ic}','${s.n}')">
+      <span class="sport-chip-ic">${s.ic}</span>${s.n}
+    </div>`).join('');
 }
 
-function saveLog() {
-  const checked = Array.from(document.querySelectorAll('#log-activities .chk.on')).map(b => b.textContent);
-  const notes = document.getElementById('log-notes').value;
-  const rec = { date: new Date().toISOString(), activities: checked, stars: {...starState}, notes };
-  const logs = JSON.parse(localStorage.getItem('cp_daily_logs') || '[]');
-  logs.unshift(rec);
-  localStorage.setItem('cp_daily_logs', JSON.stringify(logs.slice(0, 90)));
-  showToast(t('toastSaved'));
-  document.querySelectorAll('#log-activities .chk').forEach(b => b.classList.remove('on'));
-  document.getElementById('log-notes').value = '';
-  ['hand','gait','mood'].forEach(k => { starState[k] = 0; document.querySelectorAll(`#stars-${k} .star`).forEach(s => s.classList.remove('lit')); });
-}
-
-// ── Nav ───────────────────────────────────────────────────────
+// ══ Nav ════════════════════════════════════════════════════════
 function switchNav(id, el) {
-  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  document.getElementById('panel-'+id).classList.add('active');
-  el.classList.add('active');
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('on'));
+  document.getElementById('p-'+id).classList.add('on');
+  el.classList.add('on');
   document.getElementById('main').scrollTo({top:0});
-  if (id === 'history') renderHistory();
 }
 
-// ── Toast ─────────────────────────────────────────────────────
+// ══ Lang ═══════════════════════════════════════════════════════
+function setLang(l, btn) {
+  lang = l; localStorage.setItem('cp_lang', l);
+  document.querySelectorAll('.lang-sw button').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  buildAll();
+}
+
+function applyI18n() {
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const k = el.dataset.i18n;
+    if (T[lang]?.[k]) el.textContent = T[lang][k];
+    else if (T.zh[k]) el.textContent = T.zh[k];
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    const k = el.dataset.i18nPlaceholder;
+    el.placeholder = T[lang]?.[k] || T.zh[k] || '';
+  });
+}
+
+// ══ Sport ══════════════════════════════════════════════════════
+function selectSport(el, id, ic, n) {
+  document.querySelectorAll('.sport-chip').forEach(c=>c.classList.remove('on'));
+  el.classList.add('on');
+  selectedSport = {id, ic, n};
+}
+
+// ══ Camera / Video ════════════════════════════════════════════
+function handleFile(f) {
+  if (!f) return;
+  videoFile = f;
+  const pv = document.getElementById('prev-vid');
+  pv.src = URL.createObjectURL(f);
+  document.getElementById('cam-idle').style.display = 'none';
+  document.getElementById('cam-preview').style.display = 'block';
+}
+
+async function openCamera() {
+  try {
+    mediaStream = await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false});
+    const pv = document.getElementById('prev-vid');
+    pv.srcObject = mediaStream; pv.muted = true; pv.play();
+    document.getElementById('cam-idle').style.display = 'none';
+    document.getElementById('cam-preview').style.display = 'block';
+    // Auto-record on open
+    recChunks = [];
+    const opts = MediaRecorder.isTypeSupported('video/webm') ? {mimeType:'video/webm'} : {};
+    mediaRecorder = new MediaRecorder(mediaStream, opts);
+    mediaRecorder.ondataavailable = e => { if(e.data.size>0) recChunks.push(e.data); };
+    mediaRecorder.onstop = () => {
+      const blob = new Blob(recChunks, {type:'video/webm'});
+      videoFile = new File([blob],'rec.webm',{type:'video/webm'});
+      const url = URL.createObjectURL(blob);
+      pv.srcObject = null; pv.src = url;
+    };
+    mediaRecorder.start(100);
+    setTimeout(() => { if(mediaRecorder?.state !== 'inactive') mediaRecorder.stop(); }, 30000);
+  } catch(e) { showToast('⚠️ ' + e.message); }
+}
+
+function confirmVideo() {
+  if (mediaStream) { mediaStream.getTracks().forEach(t=>t.stop()); mediaStream = null; }
+  document.getElementById('cam-preview').style.display = 'none';
+  document.getElementById('cam-confirmed').style.display = 'block';
+}
+
+function retakeVideo() {
+  videoFile = null;
+  document.getElementById('prev-vid').src = '';
+  document.getElementById('cam-preview').style.display = 'none';
+  document.getElementById('cam-confirmed').style.display = 'none';
+  document.getElementById('cam-idle').style.display = 'block';
+  document.getElementById('result-wrap').innerHTML = '';
+  document.getElementById('progress-wrap').style.display = 'none';
+}
+
+// ══ Analysis ═══════════════════════════════════════════════════
+async function startAnalysis() {
+  const btn = document.getElementById('analyze-btn');
+  btn.disabled = true;
+  const pw = document.getElementById('progress-wrap');
+  pw.style.display = 'block';
+  document.getElementById('result-wrap').innerHTML = '';
+  const steps = t('steps');
+  pw.innerHTML = steps.map((s,i)=>`<div class="step" id="st${i}"><div class="step-dot"></div><span class="step-txt">${s}</span></div>`).join('');
+  const delays = [400,900,1600,2400,3300,4200];
+  let b64 = null;
+  if (videoFile) b64 = await extractFrame(videoFile);
+  for (let i=0;i<6;i++) {
+    await sleep(delays[i]);
+    if(i>0){document.getElementById('st'+(i-1)).classList.remove('active');document.getElementById('st'+(i-1)).classList.add('done');}
+    document.getElementById('st'+i).classList.add('active');
+  }
+  try {
+    const res = await callAPI(b64);
+    await sleep(400);
+    for(let i=0;i<6;i++){const s=document.getElementById('st'+i);s.classList.remove('active');s.classList.add('done');}
+    await sleep(200);
+    pw.style.display = 'none';
+    renderResult(res);
+    saveAnalysis(res);
+  } catch(e) {
+    pw.style.display = 'none';
+    document.getElementById('result-wrap').innerHTML = `<div class="ins alert"><div class="ins-head">Error</div><div class="ins-body">${e.message}</div></div>`;
+  }
+  btn.disabled = false;
+}
+
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
+async function extractFrame(file) {
+  return new Promise(resolve => {
+    const v = document.createElement('video');
+    v.src = URL.createObjectURL(file); v.currentTime = 1;
+    v.oncanplay = () => {
+      const c = document.createElement('canvas'); c.width=640; c.height=360;
+      c.getContext('2d').drawImage(v,0,0,640,360);
+      resolve(c.toDataURL('image/jpeg',.82).split(',')[1]);
+    };
+    v.onerror = () => resolve(null);
+  });
+}
+
+async function callAPI(b64) {
+  const sport = selectedSport.n;
+  const sys = `You are an expert AI motion analyst for paediatric cerebral palsy rehabilitation. Analyse and output ONLY valid JSON:
+{"overall":number,"layer1":{"shoulder":{"score":number,"left":number,"right":number,"note":"string"},"elbow":{"score":number,"left":number,"right":number,"note":"string"},"wrist":{"score":number,"left":number,"right":number,"note":"string"},"ankle":{"score":number,"left":number,"right":number,"note":"string"}},"layer2":{"symmetry":{"score":number,"note":"string"},"gait_inward":{"score":number,"angle":number,"note":"string"},"right_hand_use":{"score":number,"pct":number,"note":"string"},"bimanual":{"score":number,"note":"string"},"balance":{"score":number,"note":"string"}},"insights":[{"type":"good","title":"string","body":"string"},{"type":"warn","title":"string","body":"string"},{"type":"alert","title":"string","body":"string"}],"next_focus":"string","rehab_value":number}
+Child: Chengyu, 8yo, right hemiplegic CP. Right foot drop, foot inward gait, right hand underuse, right eye exotropia. ${lang==='fr'?'Output all text fields in French.':lang==='en'?'Output all text fields in English.':'Output all text fields in Chinese.'}`;
+  const content = b64
+    ? [{type:'image',source:{type:'base64',media_type:'image/jpeg',data:b64}},{type:'text',text:`Activity: ${sport}. Analyse this frame for right hemiplegic CP child. JSON only.`}]
+    : [{type:'text',text:`Activity: ${sport}. No video — generate representative assessment for 8yo right hemiplegic CP. JSON only.`}];
+  const res = await fetch('/api/analyze', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({system:sys,messages:[{role:'user',content}]})});
+  if (!res.ok) { const e=await res.json().catch(()=>({})); throw new Error(e.error?.message||'API error'); }
+  const data = await res.json();
+  return JSON.parse(data.content[0].text.replace(/```json|```/g,'').trim());
+}
+
+function renderResult(r) {
+  const sc = n => n>=70?'#6FCF97':n>=50?'#F2C94C':'#EB5757';
+  const fi = n => n>=70?'background:var(--mint)':n>=50?'background:var(--amber)':'background:var(--coral)';
+  const l1=r.layer1, l2=r.layer2;
+  const card = (nm, score, detail) => `<div class="sc">
+    <div class="sc-top"><span class="sc-name">${nm}</span><span class="sc-num" style="color:${sc(score)}">${score}</span></div>
+    <div class="sc-bar"><div class="sc-fill" style="width:${score}%;${fi(score)}"></div></div>
+    <div class="sc-note">${detail}</div></div>`;
+  document.getElementById('result-wrap').innerHTML = `
+    <div class="result-hero">
+      <div><div class="res-sport">${selectedSport.ic} ${selectedSport.n}</div><div class="res-sub">${t('rehabVal')}: ${r.rehab_value}/100</div></div>
+      <div class="big-score"><div class="big-num">${r.overall}</div><div class="big-lbl">${t('overall')}</div></div>
+    </div>
+    <div class="layer-title">🦴 ${lang==='zh'?'第一层：身体结构':lang==='fr'?'Couche 1: Structure':'Layer 1: Structure'}</div>
+    <div class="sc-grid">
+      ${card(t('shoulder'),l1.shoulder.score,`L${l1.shoulder.left}°/R${l1.shoulder.right}° · ${l1.shoulder.note}`)}
+      ${card(t('elbow'),l1.elbow.score,`L${l1.elbow.left}°/R${l1.elbow.right}° · ${l1.elbow.note}`)}
+      ${card(t('wrist'),l1.wrist.score,`L${l1.wrist.left}°/R${l1.wrist.right}° · ${l1.wrist.note}`)}
+      ${card(t('ankle'),l1.ankle.score,`L${l1.ankle.left}°/R${l1.ankle.right}° · ${l1.ankle.note}`)}
+    </div>
+    <div class="layer-title">🏃 ${lang==='zh'?'第二层：运动质量':lang==='fr'?'Couche 2: Qualité':'Layer 2: Quality'}</div>
+    <div class="sc-grid">
+      ${card(t('symmetry'),l2.symmetry.score,l2.symmetry.note)}
+      ${card(t('gaitInward'),l2.gait_inward.score,`${l2.gait_inward.angle}° · ${l2.gait_inward.note}`)}
+      ${card(t('rightHand'),l2.right_hand_use.score,`${l2.right_hand_use.pct}% · ${l2.right_hand_use.note}`)}
+      ${card(t('bimanual'),l2.bimanual.score,l2.bimanual.note)}
+      ${card(t('balance'),l2.balance.score,l2.balance.note)}
+    </div>
+    <div class="layer-title">💡 ${t('aiInsights')}</div>
+    ${(r.insights||[]).map(i=>`<div class="ins ${i.type}"><div class="ins-head">${i.title}</div><div class="ins-body">${i.body}</div></div>`).join('')}
+    <div class="ins next" style="margin-top:4px"><div class="ins-head">${t('nextFocus')}</div><div class="ins-body">${r.next_focus}</div></div>
+  `;
+  document.getElementById('main').scrollTo({top:document.getElementById('result-wrap').offsetTop-16,behavior:'smooth'});
+}
+
+function saveAnalysis(r) {
+  analysisHistory.unshift({date:new Date().toISOString(),sport:{...selectedSport},overall:r.overall,rehab:r.rehab_value});
+  if(analysisHistory.length>40) analysisHistory=analysisHistory.slice(0,40);
+  localStorage.setItem('cp_analysis',JSON.stringify(analysisHistory));
+}
+
+// ══ Log save ═══════════════════════════════════════════════════
+function saveLog() {
+  const week = getWeekKey();
+  if (!logData[week]) logData[week] = {};
+  LOG_ITEMS.forEach((it,idx) => {
+    const vals = [0,1,2,3,4,5,6].map(di => {
+      const el = document.getElementById(`log_${idx}_${di}`);
+      return el ? el.value : '';
+    });
+    logData[week][idx] = vals;
+  });
+  logData[week].note = document.getElementById('log-note').value;
+  localStorage.setItem('cp_log', JSON.stringify(logData));
+  showToast(t('toastSaved'));
+}
+
+function getWeekKey() {
+  const d = new Date(); const day = d.getDay()||7;
+  d.setDate(d.getDate()-day+1);
+  return d.toISOString().slice(0,10);
+}
+
+// ══ Monthly save ═══════════════════════════════════════════════
+function saveMonthly() {
+  const now = new Date();
+  const key = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  if (!monthlyData[key]) monthlyData[key] = {};
+  MONTHLY_ITEMS.forEach(m => {
+    const el = document.getElementById('mo_'+m.key);
+    if (el) monthlyData[key][m.key] = el.value;
+  });
+  // update KPI from monthly
+  const map = {sls_r:'sls_right',hop_r:'hop_right',prc:'prc',ha:'hearing',rhand:'right_hand'};
+  Object.entries(map).forEach(([mk,kk]) => {
+    const v = parseFloat(monthlyData[key][mk]);
+    if (!isNaN(v)) {
+      const kpi = KPI_DATA.find(k=>k.key===kk);
+      if (kpi) { kpi.val = v; monthlyData[kk] = v; }
+    }
+  });
+  localStorage.setItem('cp_monthly', JSON.stringify(monthlyData));
+  showToast(t('toastSaved'));
+  buildKPI();
+}
+
+// ══ Toast ══════════════════════════════════════════════════════
 function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg; t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2200);
 }
 
-// ── Init ──────────────────────────────────────────────────────
-function init() {
-  applyTranslations();
-  buildSportChips();
-  buildLogActivities();
-  // restore lang buttons
-  document.querySelectorAll('.lang-btn').forEach(b => {
-    if (b.textContent.toLowerCase().replace('en','en').includes(lang === 'zh' ? '中' : lang)) b.classList.add('active');
-    else b.classList.remove('active');
-  });
-  document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
-  const langMap = {'zh':'中文','en':'EN','fr':'FR'};
-  document.querySelectorAll('.lang-btn').forEach(b => {
-    if (b.textContent === langMap[lang]) b.classList.add('active');
-  });
-}
+// ══ Alert dot on dashboard ════════════════════════════════════
+document.getElementById('ni-dash').querySelector('.ni-dot').style.display = 'block';
 
-init();
+// ══ Init ═══════════════════════════════════════════════════════
+buildAll();
 </script>
 </body>
 </html>
