@@ -413,6 +413,81 @@
       line-height: 1.6
     }
 
+    .advice-actions {
+      display: flex;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .advice-btn {
+      border: 1px solid rgba(111, 207, 151, .35);
+      background: rgba(111, 207, 151, .08);
+      color: var(--em);
+      border-radius: 8px;
+      padding: 6px 10px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .status-btn {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--white);
+      padding: 6px 4px;
+      margin-top: 6px;
+      font-size: 12px;
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    .status-none {
+      color: var(--muted);
+    }
+
+    .status-half {
+      color: #b98310;
+      border-color: #f2c94c;
+    }
+
+    .status-done {
+      color: #1a7a52;
+      border-color: #6fcf97;
+      background: #e8f5ee;
+    }
+
+    .log-summary {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .summary-card {
+      background: var(--card);
+      border-radius: 10px;
+      padding: 10px 8px;
+      text-align: center;
+      font-size: 12px;
+      color: var(--text);
+    }
+
+    .summary-day {
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .summary-pct {
+      font-size: 14px;
+      font-weight: 700;
+      margin: 4px 0;
+    }
+
+    .summary-status {
+      color: var(--muted);
+      font-size: 11px;
+    }
+
     /* ── Timeline ── */
     .tl-item {
       display: flex;
@@ -1301,35 +1376,14 @@
       <div class="kpi-grid" id="kpi-grid"></div>
 
       <div class="sec-head" data-i18n="weekAdvice">本周行动建议</div>
-      <div class="advice-list">
-        <div class="advice-item">
-          <div class="advice-num">1</div>
-          <div class="advice-body">
-            <div class="advice-head" data-i18n="adv1h">主线活动：无人机 / 电子制作</div>
-            <div class="advice-text" data-i18n="adv1b">每周2–4次，每次20–45分钟；重点观察右手是否参与拿螺丝刀、稳定零件。</div>
-          </div>
-        </div>
-        <div class="advice-item">
-          <div class="advice-num">2</div>
-          <div class="advice-body">
-            <div class="advice-head" data-i18n="adv2h">下肢最小有效剂量</div>
-            <div class="advice-text" data-i18n="adv2b">单脚站立/拉伸做短时高频，不要把孩子喜欢的时间全部挤掉。</div>
-          </div>
-        </div>
-        <div class="advice-item">
-          <div class="advice-num">3</div>
-          <div class="advice-body">
-            <div class="advice-head" data-i18n="adv3h">视频档案优先</div>
-            <div class="advice-text" data-i18n="adv3b">每月固定拍5段视频，比每天记大量文字更有价值。</div>
-          </div>
-        </div>
-        <div class="advice-item">
-          <div class="advice-num">4</div>
-          <div class="advice-body">
-            <div class="advice-head" data-i18n="adv4h">疲劳红线</div>
-            <div class="advice-text" data-i18n="adv4b">疲劳评分连续>3，下周减少球类/高强度，保留游泳或散步。</div>
-          </div>
-        </div>
+      <div class="advice-list" id="advice-list"></div>
+      <div class="card" id="advice-add-card" style="margin-bottom:10px;background:#f7fdf6">
+        <div style="font-size:12px;font-weight:600;color:var(--em);margin-bottom:8px">➕ 编辑行动建议</div>
+        <input type="text" id="new-advice-title" placeholder="建议标题"
+          style="width:100%;border:1px solid var(--border);border-radius:8px;padding:10px;font-size:14px;margin-bottom:8px">
+        <textarea id="new-advice-body" placeholder="建议内容"
+          style="width:100%;border:1px solid var(--border);border-radius:8px;padding:10px;font-size:14px;min-height:70px;resize:none"></textarea>
+        <button class="save-btn" style="margin-top:8px" onclick="addAdvice()">添加建议</button>
       </div>
     </div>
 
@@ -1410,7 +1464,9 @@
     <!-- ══ PANEL: 日志 ══ -->
     <div class="panel" id="p-log">
       <div class="sec-head" data-i18n="logTitle">每日训练打卡</div>
+      <div id="log-summary"></div>
       <div id="log-form"></div>
+      <div id="log-add-card"></div>
       <div class="card" style="margin-top:8px">
         <div class="card-title" data-i18n="logNote">今日备注</div>
         <textarea id="log-note"
@@ -1632,6 +1688,19 @@
       { name: '🏃 长距离跑步', hand: 0.00, gait: 0.05, vision: 0.00, rec: 'aux', dose: '暂不推荐', tip: '⚠️ 主动背屈0°，跑步会加重代偿损伤，待背屈≥10°后考虑' },
     ];
 
+    const ADVICE_DEFAULT = [
+      { title: { zh: '主线活动：无人机 / 电子制作', en: 'Lead Activity: Drone / Electronics', fr: 'Activité principale : Drone / Électronique' }, body: { zh: '每周2–4次，每次20–45分钟；重点观察右手是否参与拿螺丝刀、稳定零件。', en: '2–4×/week, 20–45 min; focus on right hand participation (holding screwdriver, stabilizing parts).', fr: '2–4×/semaine, 20–45 min ; observer la main droite.' } },
+      { title: { zh: '下肢最小有效剂量', en: 'Minimal Effective Dose (Legs)', fr: 'Dose minimale efficace (membres inf.)' }, body: { zh: '单脚站立/拉伸做短时高频，不要把孩子喜欢的时间全部挤掉。', en: 'Short, frequent single-leg stands and stretches — don\'t crowd out his favorite activities.', fr: 'Station unipodal et étirements courts et fréquents — ne pas empiéter sur ses activités préférées.' } },
+      { title: { zh: '视频档案优先', en: 'Video Archive First', fr: 'Archives vidéo en priorité' }, body: { zh: '每月固定拍5段视频，比每天记大量文字更有价值。', en: '5 fixed monthly video clips beats daily text notes every time.', fr: '5 clips vidéo mensuels fixes > notes texte quotidiennes.' } },
+      { title: { zh: '疲劳红线', en: 'Fatigue Red Line', fr: 'Seuil de fatigue' }, body: { zh: '疲劳评分连续>3，下周减少球类/高强度，保留游泳或散步。', en: 'If fatigue score > 3 for 3+ days, cut sports/intensity next week. Keep swimming or walking.', fr: 'Si score fatigue > 3 pendant 3+ jours, réduire sport/intensité la semaine suivante.' } },
+    ];
+
+    const LOG_STATE_LABELS = {
+      zh: ['未做', '50%', '完成'],
+      en: ['None', '50%', 'Done'],
+      fr: ['Aucun', '50%', 'Fait']
+    };
+
     const LOG_ITEMS = [
       { ic: '🦴', name: { zh: '靠墙拉伸小腿（3×30s）', en: 'Wall Calf Stretch (3×30s)', fr: 'Étirement mollet (3×30s)' }, imp: 'r' },
       { ic: '🦴', name: { zh: '坐姿够脚尖（2×30s）', en: 'Seated Hamstring (2×30s)', fr: 'Étirement ischio (2×30s)' }, imp: 'r' },
@@ -1648,6 +1717,12 @@
       { ic: '⚽', name: { zh: '运动类型+时长（分钟）', en: 'Sport type + duration (min)', fr: 'Sport + durée (min)' }, imp: 'a' },
       { ic: '🌟', name: { zh: '今日状态（1-5星）', en: 'Today\'s Energy (1-5★)', fr: 'Énergie du jour (1-5★)' }, imp: '' },
     ];
+
+    const LOG_DAYS = {
+      zh: ['一', '二', '三', '四', '五', '六', '日'],
+      en: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+      fr: ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']
+    };
 
     const MONTHLY_ITEMS = [
       { key: 'sls_r', lbl: { zh: '右腿单脚站立（秒）', en: 'R.Leg Stand (sec)', fr: 'Station unipodal D (sec)' }, baseline: '1-2秒', target: '≥8秒', unit: 'sec' },
@@ -1683,7 +1758,9 @@
       buildMetrics();
       buildTraining();
       buildROI();
+      buildAdvice();
       buildLogForm();
+      buildLogSummary();
       buildMonthly();
       buildSportChips();
       applyI18n();
@@ -1803,14 +1880,80 @@
       }).join('');
     }
 
+    function getAdviceItems() {
+      const stored = JSON.parse(localStorage.getItem('cp_week_advice') || '[]');
+      return [...ADVICE_DEFAULT, ...stored];
+    }
+
+    function buildAdvice() {
+      const advice = getAdviceItems();
+      const list = document.getElementById('advice-list');
+      list.innerHTML = advice.map((item, idx) => {
+        const title = item.title[lang] || item.title.zh || item.title;
+        const body = item.body[lang] || item.body.zh || item.body;
+        const isCustom = idx >= ADVICE_DEFAULT.length;
+        return `<div class="card advice-card">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start">
+          <div style="font-size:14px;font-weight:700;margin-bottom:4px">${title}</div>
+          ${isCustom ? `<div class="advice-actions"><button class="advice-btn" onclick="editAdvice(${idx})">${lang === 'zh' ? '修改' : lang === 'fr' ? 'Modifier' : 'Edit'}</button><button class="advice-btn" onclick="deleteAdvice(${idx})">${lang === 'zh' ? '删除' : lang === 'fr' ? 'Supprimer' : 'Delete'}</button></div>` : ''}
+        </div>
+        <div class="advice-text">${body}</div>
+      </div>`;
+      }).join('');
+    }
+
+    function addAdvice() {
+      const title = document.getElementById('new-advice-title').value.trim();
+      const body = document.getElementById('new-advice-body').value.trim();
+      if (!title || !body) return alert(lang === 'zh' ? '请输入标题和内容' : lang === 'fr' ? 'Veuillez saisir un titre et un contenu' : 'Please enter title and body');
+      const stored = JSON.parse(localStorage.getItem('cp_week_advice') || '[]');
+      stored.push({ title: { zh: title, en: title, fr: title }, body: { zh: body, en: body, fr: body } });
+      localStorage.setItem('cp_week_advice', JSON.stringify(stored));
+      document.getElementById('new-advice-title').value = '';
+      document.getElementById('new-advice-body').value = '';
+      buildAdvice();
+      showToast(lang === 'zh' ? '✓ 已添加建议' : lang === 'fr' ? '✓ Conseillé ajouté' : '✓ Advice added');
+    }
+
+    function editAdvice(idx) {
+      const customIdx = idx - ADVICE_DEFAULT.length;
+      if (customIdx < 0) return;
+      const stored = JSON.parse(localStorage.getItem('cp_week_advice') || '[]');
+      const item = stored[customIdx];
+      if (!item) return;
+      const currentTitle = item.title[lang] || item.title.zh || '';
+      const currentBody = item.body[lang] || item.body.zh || '';
+      const newTitle = prompt(lang === 'zh' ? '编辑建议标题' : lang === 'fr' ? 'Modifier le titre' : 'Edit advice title', currentTitle);
+      if (newTitle === null || !newTitle.trim()) return;
+      const newBody = prompt(lang === 'zh' ? '编辑建议内容' : lang === 'fr' ? 'Modifier le contenu' : 'Edit advice body', currentBody);
+      if (newBody === null || !newBody.trim()) return;
+      stored[customIdx] = { title: { zh: newTitle.trim(), en: newTitle.trim(), fr: newTitle.trim() }, body: { zh: newBody.trim(), en: newBody.trim(), fr: newBody.trim() } };
+      localStorage.setItem('cp_week_advice', JSON.stringify(stored));
+      buildAdvice();
+      showToast(lang === 'zh' ? '✓ 已更新建议' : lang === 'fr' ? '✓ Conseillé mis à jour' : '✓ Advice updated');
+    }
+
+    function deleteAdvice(idx) {
+      if (!confirm(lang === 'zh' ? '确定要删除此建议吗？' : lang === 'fr' ? 'Supprimer ce conseil ?' : 'Delete this advice?')) return;
+      const customIdx = idx - ADVICE_DEFAULT.length;
+      if (customIdx < 0) return;
+      const stored = JSON.parse(localStorage.getItem('cp_week_advice') || '[]');
+      stored.splice(customIdx, 1);
+      localStorage.setItem('cp_week_advice', JSON.stringify(stored));
+      buildAdvice();
+      showToast(lang === 'zh' ? '✓ 已删除建议' : lang === 'fr' ? '✓ Conseillé supprimé' : '✓ Advice deleted');
+    }
+
     function buildLogForm() {
-      const days = ['一', '二', '三', '四', '五', '六', '日'];
+      const days = LOG_DAYS[lang] || LOG_DAYS.zh;
       const today = new Date().getDay();
       const el = document.getElementById('log-form');
 
       const customItems = JSON.parse(localStorage.getItem('cp_log_custom') || '[]');
       const allItems = [...LOG_ITEMS, ...customItems];
 
+      const week = getWeekKey();
+      const weekData = logData[week] || {};
       el.innerHTML = allItems.map((it, idx) => {
         const isCustom = idx >= LOG_ITEMS.length;
         const name = typeof it.name === 'object' ? (it.name[lang] || it.name.zh) : it.name;
@@ -1821,31 +1964,36 @@
         <div class="log-name">${it.ic} ${name}</div>
         <div style="display:flex;align-items:center;gap:8px">
           ${impC ? `<span class="log-imp ${impC}">${impT}</span>` : ''}
-          ${isCustom ? `<button class="log-edit-btn" onclick="editLogItem(${idx})" title="${lang === 'zh' ? '修改' : lang === 'fr' ? 'Modifier' : 'Edit'}">✎</button><button class="log-delete-btn" onclick="deleteLogItem(${idx})" title="${lang === 'zh' ? '删除' : 'Delete'}">✕</button>` : ''}
+          ${isCustom ? `<button class="log-edit-btn" onclick="editLogItem(${idx})" title="${lang === 'zh' ? '修改' : lang === 'fr' ? 'Modifier' : 'Edit'}">✎</button><button class="log-delete-btn" onclick="deleteLogItem(${idx})" title="${lang === 'zh' ? '删除' : lang === 'fr' ? 'Supprimer' : 'Delete'}">✕</button>` : ''}
         </div>
       </div>
       <div class="log-row">
-        ${days.map((d, di) => `<div class="log-day">
-          <div class="log-day-lbl">${d}</div>
-          <input class="log-input" id="log_${idx}_${di}" type="text" placeholder="${di === today ? '今' : ''}">
-        </div>`).join('')}
+        ${days.map((d, di) => {
+          const state = parseInt(weekData[idx]?.[di]) || 0;
+          const label = LOG_STATE_LABELS[lang][state];
+          const cls = state === 2 ? 'status-done' : state === 1 ? 'status-half' : 'status-none';
+          return `<div class="log-day">
+            <div class="log-day-lbl">${d}</div>
+            <button id="log_${idx}_${di}" class="status-btn ${cls}" type="button" data-state="${state}" onclick="cycleLogState(${idx},${di})">${label}</button>
+          </div>`;
+        }).join('')}
       </div>
     </div>`;
       }).join('');
 
-      // Add custom item input
       const addHtml = `
     <div class="card" style="margin-top:12px;background:#f0fbf7">
-      <div style="font-size:12px;font-weight:600;color:var(--em);margin-bottom:8px">${lang === 'zh' ? '➕ 添加自定义活动' : '➕ Add Custom'}</div>
+      <div style="font-size:12px;font-weight:600;color:var(--em);margin-bottom:8px">${lang === 'zh' ? '➕ 添加自定义活动' : lang === 'fr' ? '➕ Ajouter personnalisé' : '➕ Add Custom'}</div>
       <input type="text" id="new-item-ic" placeholder="❤️" maxlength="2" style="width:45px;border:1px solid var(--border);border-radius:6px;padding:8px;font-size:14px;text-align:center;margin-bottom:6px">
-      <input type="text" id="new-item-name" placeholder="${lang === 'zh' ? '活动名称' : 'Activity name'}" style="width:calc(100% - 51px);margin-left:6px;border:1px solid var(--border);border-radius:6px;padding:8px;font-size:14px">
+      <input type="text" id="new-item-name" placeholder="${lang === 'zh' ? '活动名称' : lang === 'fr' ? 'Nom de l’activité' : 'Activity name'}" style="width:calc(100% - 51px);margin-left:6px;border:1px solid var(--border);border-radius:6px;padding:8px;font-size:14px">
       <div style="display:flex;gap:6px;margin-top:8px">
-        <button class="save-btn" style="flex:1;font-size:14px;padding:10px" onclick="addLogItem()">${lang === 'zh' ? '添加' : 'Add'}</button>
-        <button class="save-btn" style="flex:1;font-size:14px;padding:10px;background:#718096" onclick="clearLogItems()">${lang === 'zh' ? '清空自定义' : 'Clear Custom'}</button>
+        <button class="save-btn" style="flex:1;font-size:14px;padding:10px" onclick="addLogItem()">${lang === 'zh' ? '添加' : lang === 'fr' ? 'Ajouter' : 'Add'}</button>
+        <button class="save-btn" style="flex:1;font-size:14px;padding:10px;background:#718096" onclick="clearLogItems()">${lang === 'zh' ? '清空自定义' : lang === 'fr' ? 'Effacer personnalisé' : 'Clear Custom'}</button>
       </div>
     </div>
   `;
-      el.insertAdjacentHTML('afterend', addHtml);
+      document.getElementById('log-add-card').innerHTML = addHtml;
+      document.getElementById('log-note').value = weekData.note || '';
     }
 
     function buildMonthly() {
@@ -2125,14 +2273,64 @@ Child: Chengyu, 8yo, right hemiplegic CP. Right foot drop, foot inward gait, rig
 
       allItems.forEach((it, idx) => {
         const vals = [0, 1, 2, 3, 4, 5, 6].map(di => {
-          const el = document.getElementById(`log_${idx}_${di}`);
-          return el ? el.value : '';
+          const btn = document.getElementById(`log_${idx}_${di}`);
+          return btn ? parseInt(btn.dataset.state || '0') : 0;
         });
         logData[week][idx] = vals;
       });
       logData[week].note = document.getElementById('log-note').value;
       localStorage.setItem('cp_log', JSON.stringify(logData));
       showToast(t('toastSaved'));
+      buildLogSummary();
+    }
+
+    function cycleLogState(idx, di) {
+      const btn = document.getElementById(`log_${idx}_${di}`);
+      if (!btn) return;
+      let state = parseInt(btn.dataset.state || '0');
+      state = (state + 1) % 3;
+      btn.dataset.state = state;
+      btn.textContent = LOG_STATE_LABELS[lang][state];
+      btn.className = `status-btn ${state === 2 ? 'status-done' : state === 1 ? 'status-half' : 'status-none'}`;
+      const week = getWeekKey();
+      if (!logData[week]) logData[week] = {};
+      if (!Array.isArray(logData[week][idx])) logData[week][idx] = Array(7).fill(0);
+      logData[week][idx][di] = state;
+      localStorage.setItem('cp_log', JSON.stringify(logData));
+      buildLogSummary();
+    }
+
+    function buildLogSummary() {
+      const week = getWeekKey();
+      const weekData = logData[week] || {};
+      const customItems = JSON.parse(localStorage.getItem('cp_log_custom') || '[]');
+      const allItems = [...LOG_ITEMS, ...customItems];
+      const days = LOG_DAYS[lang] || LOG_DAYS.zh;
+      const total = allItems.length;
+      const el = document.getElementById('log-summary');
+      if (!total) {
+        el.innerHTML = '';
+        return;
+      }
+
+      const cards = days.map((d, di) => {
+        let completed = 0;
+        let half = 0;
+        allItems.forEach((_, idx) => {
+          const state = parseInt(weekData[idx]?.[di] || '0');
+          if (state === 2) completed += 1;
+          if (state === 1) half += 1;
+        });
+        const pct = Math.round(((completed + half * 0.5) / total) * 100);
+        const status = pct >= 80 ? (lang === 'zh' ? '很棒' : lang === 'fr' ? 'Très bien' : 'Great') : pct >= 50 ? (lang === 'zh' ? '进行中' : lang === 'fr' ? 'En cours' : 'In progress') : (lang === 'zh' ? '待加强' : lang === 'fr' ? 'À améliorer' : 'Needs work');
+        return `<div class="summary-card"><div class="summary-day">${d}</div><div class="summary-pct">${pct}%</div><div class="summary-status">${status}</div></div>`;
+      }).join('');
+
+      const overallDone = Object.values(weekData).reduce((sum, arr) => sum + (Array.isArray(arr) ? arr.filter(v => parseInt(v) === 2).length : 0), 0);
+      const overallHalf = Object.values(weekData).reduce((sum, arr) => sum + (Array.isArray(arr) ? arr.filter(v => parseInt(v) === 1).length : 0), 0);
+      const overallPct = Math.round(((overallDone + overallHalf * 0.5) / (total * 7)) * 100);
+      const overallText = lang === 'zh' ? `本周总完成度 ${overallPct}% (${overallDone} 完成, ${overallHalf} 半完成)` : lang === 'fr' ? `Achèvement hebdo ${overallPct}% (${overallDone} faits, ${overallHalf} à moitié)` : `Weekly completion ${overallPct}% (${overallDone} done, ${overallHalf} half) `;
+      el.innerHTML = `<div class="log-summary">${cards}</div><div class="summary-card" style="grid-column: span 7; text-align:left; font-size:13px">${overallText}</div>`;
     }
 
     function getWeekKey() {
