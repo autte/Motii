@@ -1534,6 +1534,7 @@
         sports: [{ id: 'swim', ic: '🏊', n: '游泳' }, { id: 'foot', ic: '⚽', n: '足球' }, { id: 'basket', ic: '🏀', n: '篮球' }, { id: 'bike', ic: '🚴', n: '骑车' }, { id: 'drone', ic: '🛸', n: '无人机' }, { id: 'elec', ic: '🔧', n: '电子制作' }, { id: 'walk', ic: '🚶', n: '行走训练' }, { id: 'shuttle', ic: '🏸', n: '羽毛球' }],
         priLbl: { '🔴 最高': '最高', '🟡 高': '高', '🟢 中': '中' },
         toastSaved: '记录已保存 ✓', analyzeWait: '分析中...',
+        sheetSuccess: '已提交 Google Sheet ✓', sheetError: '提交失败', sheetNoResult: '请先完成一次分析', submitSheet: '提交到 Google Sheet', sheetSubmitting: '正在提交...',
         steps: ['视频上传中...', '骨骼关键点提取', '关节角度计算', '步态与对称性分析', '双手协调分析', '生成评估报告'],
         overall: '综合评分', rehabVal: '康复价值',
         shoulder: '肩关节', elbow: '肘关节', wrist: '手腕', ankle: '踝关节',
@@ -1558,6 +1559,7 @@
         sports: [{ id: 'swim', ic: '🏊', n: 'Swimming' }, { id: 'foot', ic: '⚽', n: 'Football' }, { id: 'basket', ic: '🏀', n: 'Basketball' }, { id: 'bike', ic: '🚴', n: 'Cycling' }, { id: 'drone', ic: '🛸', n: 'Drone Build' }, { id: 'elec', ic: '🔧', n: 'Electronics' }, { id: 'walk', ic: '🚶', n: 'Walking' }, { id: 'shuttle', ic: '🏸', n: 'Badminton' }],
         priLbl: { '🔴 最高': 'Critical', '🟡 高': 'High', '🟢 中': 'Medium' },
         toastSaved: 'Saved ✓', analyzeWait: 'Analysing...',
+        sheetSuccess: 'Submitted to Google Sheet ✓', sheetError: 'Submit failed', sheetNoResult: 'Please finish an analysis first', submitSheet: 'Submit to Google Sheet', sheetSubmitting: 'Submitting...',
         steps: ['Uploading video...', 'Extracting skeleton keypoints', 'Calculating joint angles', 'Gait & symmetry analysis', 'Bimanual analysis', 'Generating report'],
         overall: 'Overall Score', rehabVal: 'Rehab Value',
         shoulder: 'Shoulder', elbow: 'Elbow', wrist: 'Wrist', ankle: 'Ankle',
@@ -1582,6 +1584,7 @@
         sports: [{ id: 'swim', ic: '🏊', n: 'Natation' }, { id: 'foot', ic: '⚽', n: 'Football' }, { id: 'basket', ic: '🏀', n: 'Basketball' }, { id: 'bike', ic: '🚴', n: 'Vélo' }, { id: 'drone', ic: '🛸', n: 'Drone' }, { id: 'elec', ic: '🔧', n: 'Électronique' }, { id: 'walk', ic: '🚶', n: 'Marche' }, { id: 'shuttle', ic: '🏸', n: 'Badminton' }],
         priLbl: { '🔴 最高': 'Critique', '🟡 高': 'Élevé', '🟢 中': 'Moyen' },
         toastSaved: 'Enregistré ✓', analyzeWait: 'Analyse en cours...',
+        sheetSuccess: 'Envoyé à Google Sheet ✓', sheetError: 'Échec de l\'envoi', sheetNoResult: 'Veuillez d\'abord analyser', submitSheet: 'Envoyer à Google Sheet', sheetSubmitting: 'Envoi en cours...',
         steps: ['Téléversement...', 'Extraction squelette', 'Calcul angles articulaires', 'Analyse démarche', 'Analyse bimanuelles', 'Génération du rapport'],
         overall: 'Score global', rehabVal: 'Valeur rééducative',
         shoulder: 'Épaule', elbow: 'Coude', wrist: 'Poignet', ankle: 'Cheville',
@@ -1750,6 +1753,9 @@
     let logData = JSON.parse(localStorage.getItem('cp_log') || '{}');
     let monthlyData = JSON.parse(localStorage.getItem('cp_monthly') || '{}');
     let analysisHistory = JSON.parse(localStorage.getItem('cp_analysis') || '[]');
+    let latestResult = null;
+    const SHEET_API = '/api/submit';
+    const AUTO_SUBMIT_TO_SHEET = false;
 
     // ══ Build UI ════════════════════════════════════════════════════
     function buildAll() {
@@ -2134,6 +2140,7 @@
         pw.style.display = 'none';
         renderResult(res);
         saveAnalysis(res);
+        if (AUTO_SUBMIT_TO_SHEET) await submitToSheet();
       } catch (e) {
         pw.style.display = 'none';
         document.getElementById('result-wrap').innerHTML = `<div class="ins alert"><div class="ins-head">Error</div><div class="ins-body">${e.message}</div></div>`;
@@ -2201,8 +2208,46 @@ Child: Chengyu, 8yo, right hemiplegic CP. Right foot drop, foot inward gait, rig
     <div class="layer-title">💡 ${t('aiInsights')}</div>
     ${(r.insights || []).map(i => `<div class="ins ${i.type}"><div class="ins-head">${i.title}</div><div class="ins-body">${i.body}</div></div>`).join('')}
     <div class="ins next" style="margin-top:4px"><div class="ins-head">${t('nextFocus')}</div><div class="ins-body">${r.next_focus}</div></div>
+    <button id="sheet-btn" class="save-btn" style="margin-top:14px;width:100%" onclick="submitToSheet()">${t('submitSheet')}</button>
   `;
       document.getElementById('main').scrollTo({ top: document.getElementById('result-wrap').offsetTop - 16, behavior: 'smooth' });
+      latestResult = r;
+    }
+
+    async function submitToSheet() {
+      if (!latestResult) return showToast(t('sheetNoResult'));
+      const btn = document.getElementById('sheet-btn');
+      try {
+        if (btn) { btn.disabled = true; btn.textContent = t('sheetSubmitting'); }
+        const payload = {
+          date: new Date().toISOString(),
+          sport_id: selectedSport.id,
+          sport_name: selectedSport.n,
+          overall: latestResult.overall,
+          rehab_value: latestResult.rehab_value,
+          symmetry_score: latestResult.layer2.symmetry.score,
+          gait_score: latestResult.layer2.gait_inward.score,
+          gait_angle: latestResult.layer2.gait_inward.angle,
+          right_hand_pct: latestResult.layer2.right_hand_use.pct,
+          bimanual_score: latestResult.layer2.bimanual.score,
+          balance_score: latestResult.layer2.balance.score,
+          next_focus: latestResult.next_focus,
+          notes: latestResult.layer2.symmetry.note || '',
+          raw_result: latestResult
+        };
+        const res = await fetch(SHEET_API, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || 'Submit failed');
+        showToast(t('sheetSuccess'));
+      } catch (e) {
+        showToast(`${t('sheetError')}: ${e.message}`);
+      } finally {
+        if (btn) { btn.disabled = false; btn.textContent = t('submitSheet'); }
+      }
     }
 
     function saveAnalysis(r) {
