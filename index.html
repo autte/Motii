@@ -1725,16 +1725,16 @@
                 <div style="font-size:11px;color:var(--muted)" id="video-act-link">Linked goal: Right-leg stand</div>
               </div>
             </div>
-            <button
+            <button onclick="switchNav('log',document.querySelector('[data-nav=log]'))"
               style="font-size:11px;color:var(--green-mid);background:none;border:none;cursor:pointer;font-weight:500">Change</button>
           </div>
         </div>
         <div class="section-label">AI focus areas</div>
         <div class="obs-wrap" style="margin-bottom:14px">
-          <span class="obs-tag sel">Right-leg stability</span>
-          <span class="obs-tag">Stand duration</span>
-          <span class="obs-tag">Right-hand assist</span>
-          <span class="obs-tag">Overall posture</span>
+          <span class="obs-tag sel" onclick="this.classList.toggle('sel')">Right-leg stability</span>
+          <span class="obs-tag" onclick="this.classList.toggle('sel')">Stand duration</span>
+          <span class="obs-tag" onclick="this.classList.toggle('sel')">Right-hand assist</span>
+          <span class="obs-tag" onclick="this.classList.toggle('sel')">Overall posture</span>
         </div>
         <button class="btn primary" id="analyze-btn" onclick="startAnalysis()">🤖 Upload & AI Analyze</button>
         <button class="btn" style="margin-top:8px" onclick="saveVideoOnly()">Save without analysis</button>
@@ -2741,7 +2741,7 @@
     function buildVideoAnalysisPrompt(actName, hasFrames) {
       const stages = GOALS.map(g => `${g.name}: ${g.cur}${g.unit}→${g.tgt}${g.unit}[${getStage(g).label}]`).join(', ');
       const prcDays = daysSince('cp_last_prc'), slsDays = daysSince('cp_last_sls');
-      const system = `You are a pediatric rehabilitation AI${hasFrames ? ' analyzing video frames ' : ' '}for Chenyu, 8yr, right spastic hemiparesis (cerebral palsy).
+      const system = `You are a pediatric rehabilitation AI${hasFrames ? ' analyzing video frames ' : ' '}for an 8-year-old child with right spastic hemiparesis (cerebral palsy). Do NOT mention the child's name in any output.
 Key impairments: right foot drop+inversion, right-hand underuse (25%), strabismus+convergence insufficiency (PRC 10cm→5cm), left ear hearing loss (88%→90%).
 Current goals: ${stages}. Days since PRC training: ${prcDays}. Days since single-leg stand: ${slsDays}.
 
@@ -2751,7 +2751,7 @@ ${hasFrames ? `From the 4 sequential video frames, analyze:
 3. RIGHT LEG — foot drop signs, toe clearance, push-off strength, knee control. Score 0–100.
 4. RIGHT HAND — arm swing symmetry vs left, compensation patterns. Score 0–100.
 5. POSTURE — trunk lean, shoulder level, head position. Score 0–100.
-6. STEP LENGTH NOTE — one sentence comparing left vs right step length qualitatively.`: 'Analyze activity value for Chenyu\'s rehabilitation goals.'}
+6. STEP LENGTH NOTE — one sentence comparing left vs right step length qualitatively.`: 'Analyze activity value for this child\'s rehabilitation goals.'}
 
 Safety: NEVER use "diagnose","prescribe","medical treatment". Use "observe","suggest","discuss with therapist".
 Return ONLY valid JSON (no markdown):
@@ -3062,11 +3062,11 @@ Return ONLY valid JSON (no markdown):
         days_since_sls_practice: slsDays,
         recovery_stages: stages
       }, null, 2);
-      const system = `You are a pediatric rehabilitation AI for Chenyu, 8yr, right spastic hemiparesis (cerebral palsy).
+      const system = `You are a pediatric rehabilitation AI for an 8-year-old child with right spastic hemiparesis (cerebral palsy). Do NOT mention the child's name in any output.
 Key impairments: right foot drop, right hand underuse (25%), strabismus + convergence insufficiency (PRC 10cm, target 5cm), left ear hearing loss (88%, target 90%).
 
 Reasoning steps (chain-of-thought):
-1. Assess therapeutic value of this specific activity for Chenyu's impairments
+1. Assess therapeutic value of this specific activity for this child's impairments
 2. Identify fatigue or compensation risk (duration, mood, high-intensity flag)
 3. Flag any regression concern from days-since data
 4. Generate 3 tips: specific, actionable, parent-friendly
