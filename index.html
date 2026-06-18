@@ -3099,9 +3099,9 @@ Return ONLY valid JSON.`;
         const resp = await fetch('/api/analyze', {
           method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
             system: `You are writing a concise rehabilitation progress report for a pediatric physiotherapist/occupational therapist.
-Child: Chenyu Niu, 8yr, right spastic hemiparesis (cerebral palsy). Parents track using RehabKids app.
+Child: 8-year-old with right spastic hemiparesis (cerebral palsy). Parents track using RehabKids app.
 Write under 280 words, professional but readable. Include: brief progress summary, key metric changes with interpretation, 2–3 clinical observations worth discussing, and specific questions to raise with the therapist.
-Do NOT add disclaimers. Output plain paragraphs, no headers, no markdown.`,
+Do NOT include the child's name. Do NOT add disclaimers. Output plain paragraphs, no headers, no markdown.`,
             messages: [{ role: 'user', content: `Generate PT/OT report for ${month}.\n\nCurrent metrics:\n${metrics}\n\nActivity compliance:\n- Sessions logged this month: 18\n- Days logged: 22 of 30\n- Best streak: 6 days\n- Days since PRC training: ${prcDays}\n- Days since single-leg stand: ${slsDays}\n\nMain activities: swimming, kicking ball, badminton, PRC eye training, single-leg stand, drone assembly.` }]
           })
         });
