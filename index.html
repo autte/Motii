@@ -418,8 +418,7 @@
   <!-- ══ JOURNAL ══ -->
   <div class="panel" id="panel-journal">
     <div class="seg">
-      <button class="seg-btn on" onclick="switchJournal('day',this)">Day</button>
-      <button class="seg-btn" onclick="switchJournal('month',this)">Month</button>
+      <button class="seg-btn on" onclick="switchJournal('month',this)">Month</button>
       <button class="seg-btn" onclick="switchJournal('year',this)">Year</button>
     </div>
 
@@ -452,7 +451,8 @@
     <!-- yearly -->
     <div id="jt-year" style="display:none">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
-        <div style="border:0.5px solid var(--green);border-radius:10px;padding:11px;cursor:pointer;background:var(--green-bg)" onclick="renderYear(2025)"><div style="font-size:18px;font-weight:600">2025</div><div style="font-size:11px;color:var(--green);margin-top:2px">In progress · Jun</div></div>
+        <div style="border:0.5px solid var(--green);border-radius:10px;padding:11px;cursor:pointer;background:var(--green-bg)" onclick="renderYear(2026)"><div style="font-size:18px;font-weight:600">2026</div><div style="font-size:11px;color:var(--green);margin-top:2px">In progress · Jun</div></div>
+        <div style="border:0.5px solid var(--border);border-radius:10px;padding:11px;cursor:pointer" onclick="renderYear(2025)"><div style="font-size:18px;font-weight:600">2025</div><div style="font-size:11px;color:var(--muted);margin-top:2px">99 sessions</div></div>
         <div style="border:0.5px solid var(--border);border-radius:10px;padding:11px;cursor:pointer" onclick="renderYear(2024)"><div style="font-size:18px;font-weight:600">2024</div><div style="font-size:11px;color:var(--muted);margin-top:2px">123 sessions</div></div>
         <div style="border:0.5px solid var(--border);border-radius:10px;padding:11px;cursor:pointer" onclick="renderYear(2023)"><div style="font-size:18px;font-weight:600">2023</div><div style="font-size:11px;color:var(--muted);margin-top:2px">89 sessions</div></div>
       </div>
@@ -806,7 +806,8 @@ let logActName='Kicking ball',logActEmoji='⚽',logDur=30,logMood='';
 let todaySessions=[];
 let logDate=new Date().toISOString().split('T')[0];
 let logCalYear=new Date().getFullYear(),logCalMo=new Date().getMonth(),logCalOpen=false;
-let goalFilter='all',goalTab='goals',journalTab='day',monthIdx=5;
+let goalFilter='all',goalTab='goals',journalTab='month';
+let jMonthYear=new Date().getFullYear(),jMonthMo=new Date().getMonth()+1; // 1-indexed
 let selGoalCat='eye', currentACat='sport';
 let mv={stand:2,jump:0,prc:10,hear:88,star:2};
 let currentModalType='goal', editingId=null;
@@ -819,7 +820,7 @@ function switchNav(id,el){
   el.classList.add('active');
   document.getElementById('main').scrollTo({top:0,behavior:'smooth'});
   if(id==='goals'){renderGoals();renderActs();}
-  if(id==='journal'){if(journalTab==='day')renderCalendar();else if(journalTab==='month')renderMonth();else if(journalTab==='year')renderYear(2025);}
+  if(id==='journal'){if(journalTab==='month')renderMonth();else if(journalTab==='year')renderYear(2026);}
   if(id==='log'){resetLog();}
   if(id==='monthly'){syncGoalsToMv();}
   if(id==='video'){
@@ -878,15 +879,54 @@ function recordActivity(){
   const chip=document.querySelector('.act-chip.sel');
   if(!chip){showToast('⚠ Select an activity first');return;}
   const note=document.getElementById('log-note').value.trim();
-  todaySessions.push({act:logActName,emoji:logActEmoji,dur:logDur,mood:logMood,note});
+  const session={id:logDate+'-'+Date.now(),act:logActName,emoji:logActEmoji,dur:logDur,mood:logMood,note};
+  todaySessions.push(session);
   trackLastActivity(logActName);
   saveSessions();
+  autoSyncSession(session);
   renderTodaySessions();
   document.querySelectorAll('#log-mood-row .mood-btn').forEach(b=>b.classList.remove('sel'));
   document.getElementById('log-note').value='';
   logMood='';
   showToast('✅ Activity recorded!');
   document.getElementById('main').scrollTo({top:0,behavior:'smooth'});
+}
+async function autoSyncSession(s){
+  try{
+    const resp=await fetch('/api/submit',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({type:'activity_log',data:{session_id:s.id,date:logDate,child_name:'Chengyu',activity:s.act,emoji:s.emoji,duration_min:s.dur,mood:s.mood,note:s.note,has_video:'FALSE',video_filename:''}})});
+    if(resp.ok){
+      localStorage.setItem('cp_submitted_'+logDate,'1');
+      updateLogDateUI();
+      renderWeekStrip();
+      if(logCalOpen) renderLogCalGrid();
+    }
+  }catch(e){}
+}
+async function loadSessionsFromSheets(){
+  try{
+    const res=await fetch('/api/read');
+    if(!res.ok) return;
+    const data=await res.json();
+    if(!Array.isArray(data.sessions)) return;
+    const byDate={};
+    data.sessions.forEach(row=>{
+      const d=String(row.date||'');
+      if(!d.match(/^\d{4}-\d{2}-\d{2}$/)) return;
+      if(!byDate[d]) byDate[d]=[];
+      byDate[d].push({id:row.session_id||d+'-0',act:row.activity||'',emoji:row.emoji||'📝',dur:parseInt(row.duration_min)||0,mood:row.mood||'',note:row.note||''});
+    });
+    Object.entries(byDate).forEach(([date,sessions])=>{
+      localStorage.setItem('cp_sessions_'+date,JSON.stringify(sessions));
+      localStorage.setItem('cp_submitted_'+date,'1');
+    });
+    const sv=localStorage.getItem('cp_sessions_'+logDate);
+    todaySessions=sv?JSON.parse(sv):[];
+    renderTodaySessions();
+    updateLogDateUI();
+    renderWeekStrip();
+    if(logCalOpen) renderLogCalGrid();
+  }catch(e){}
 }
 function renderTodaySessions(){
   const wrap=document.getElementById('today-sessions-wrap');
@@ -930,21 +970,19 @@ function updateLogDateUI(){
   const hasPending=todaySessions.length>0;
   const statusEl=document.getElementById('log-date-status');
   if(statusEl){
-    if(isSubmitted) statusEl.innerHTML='<span style="color:var(--green)">✓ Submitted</span>';
-    else if(hasPending) statusEl.innerHTML='<span style="color:var(--amber-mid)">● Not submitted yet</span>';
+    if(isSubmitted) statusEl.innerHTML='<span style="color:var(--green)">✓ Synced</span>';
+    else if(hasPending) statusEl.innerHTML='<span style="color:var(--amber-mid)">● Not synced yet</span>';
     else statusEl.innerHTML='';
   }
-  // Submit button
+  // Sync status bar
   const bar=document.getElementById('log-submit-bar');
   if(bar){
     if(isSubmitted){
-      bar.innerHTML=`<div style="display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--green-bg);border-radius:12px;margin-bottom:2px">
-        <span style="font-size:16px">✅</span>
-        <div><div style="font-size:13px;font-weight:600;color:var(--green)">Submitted to Sheets</div><div style="font-size:11px;color:var(--green);opacity:.7">You can still add more and re-submit</div></div>
-        <button onclick="resubmitToday()" style="margin-left:auto;background:none;border:1px solid var(--green);border-radius:8px;padding:4px 10px;font-size:11px;color:var(--green);cursor:pointer;white-space:nowrap">Re-submit</button>
-      </div>`;
+      bar.innerHTML=`<div style="text-align:center;font-size:12px;color:var(--green);padding:6px 0;font-weight:500">✓ Synced to Google Sheets</div>`;
+    } else if(hasPending){
+      bar.innerHTML=`<button class="btn primary" onclick="submitToday()" style="font-size:13px">↑ Sync to Sheets</button>`;
     } else {
-      bar.innerHTML=`<button class="btn primary" onclick="submitToday()">💾 Submit for ${logDate===td?'today':'this day'} → Sheets</button>`;
+      bar.innerHTML='';
     }
   }
 }
@@ -1007,24 +1045,21 @@ function renderLogCalGrid(){
 }
 
 async function submitToday(){
-  if(todaySessions.length===0){showToast('⚠ Record at least one activity first');return;}
+  if(todaySessions.length===0){showToast('⚠ No sessions to sync');return;}
+  showToast('Syncing...');
   try{
     for(const s of todaySessions){
       await fetch('/api/submit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
         type:'activity_log',
-        data:{date:logDate,child_name:'Emma',activity:s.act,emoji:s.emoji,duration_min:s.dur,mood:s.mood,note:s.note,has_video:'FALSE',video_filename:''}
+        data:{session_id:s.id||logDate+'-retry',date:logDate,child_name:'Chengyu',activity:s.act,emoji:s.emoji,duration_min:s.dur,mood:s.mood,note:s.note,has_video:'FALSE',video_filename:''}
       })});
     }
-  }catch(e){}
-  const n=todaySessions.length;
-  todaySessions=[];
-  localStorage.removeItem('cp_sessions_'+logDate);
-  localStorage.setItem('cp_submitted_'+logDate,'1');
-  renderTodaySessions();
-  updateLogDateUI();
-  document.getElementById('log-submit-count').textContent=`${n} session${n>1?'s':''} saved to Sheets`;
-  document.getElementById('log-submit-ok').style.display='block';
-  document.getElementById('main').scrollTo({top:0,behavior:'smooth'});
+    localStorage.setItem('cp_submitted_'+logDate,'1');
+    showToast('✓ Synced to Sheets');
+    updateLogDateUI();
+    renderWeekStrip();
+    if(logCalOpen) renderLogCalGrid();
+  }catch(e){showToast('⚠ Sync failed — check connection');}
 }
 async function resubmitToday(){
   localStorage.removeItem('cp_submitted_'+logDate);
@@ -1079,40 +1114,134 @@ function switchJournal(t,el){
   document.querySelectorAll('#panel-journal .seg-btn').forEach(b=>b.classList.remove('on'));
   el.classList.add('on');
   ['day','month','year','lifelong'].forEach(x=>{const d=document.getElementById('jt-'+x);if(d)d.style.display=x===t?'block':'none';});
-  if(t==='day') renderCalendar();
   if(t==='month') renderMonth();
-  if(t==='year') renderYear(2025);
+  if(t==='year') renderYear(2026);
 }
 function renderMonth(){
-  const d=MONTHS[monthIdx];
-  document.getElementById('j-month-lbl').textContent=d.lbl;
-  document.getElementById('j-hero-name').textContent=d.lbl.split(' ')[0];
-  document.getElementById('j-hero-sub').textContent=d.lbl.split(' ')[1]+' · '+d.sub;
-  document.getElementById('j-acts').textContent=d.acts;
-  document.getElementById('j-days').textContent=d.days;
-  document.getElementById('j-hrs').textContent=d.hrs;
-  document.getElementById('j-streak').textContent=d.streak;
+  const MO_NAMES=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const moName=MO_NAMES[jMonthMo-1];
+  const prefix=`${jMonthYear}-${String(jMonthMo).padStart(2,'0')}`;
+  const todayStr=new Date().toISOString().split('T')[0];
+  const isFuture=prefix>todayStr.slice(0,7);
+  const daysInMo=new Date(jMonthYear,jMonthMo,0).getDate();
+  // Current month: only count up to today; past month: count all days
+  const isCurrentMo=jMonthYear===new Date().getFullYear()&&jMonthMo===new Date().getMonth()+1;
+  const lastDay=isCurrentMo?new Date().getDate():daysInMo;
+
+  document.getElementById('j-month-lbl').textContent=`${moName} ${jMonthYear}`;
+  document.getElementById('j-hero-name').textContent=moName;
+
+  if(isFuture){
+    document.getElementById('j-hero-sub').textContent=jMonthYear+' · Future month';
+    ['j-acts','j-days','j-hrs','j-streak'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent='—';});
+    document.getElementById('j-highlights').innerHTML='<div style="color:var(--muted);font-size:13px;padding:16px 0;text-align:center">No data yet for this month.</div>';
+    document.getElementById('j-obs').innerHTML='';
+    return;
+  }
+
+  // Scan localStorage for this month
+  let sessions=0,daysLogged=0,totalMins=0,streak=0,maxStreak=0;
+  const actCount={},moodCount={};
+  for(let d=1;d<=lastDay;d++){
+    const ds=`${prefix}-${String(d).padStart(2,'0')}`;
+    const sv=localStorage.getItem('cp_sessions_'+ds);
+    const submitted=!!localStorage.getItem('cp_submitted_'+ds);
+    const daySessions=sv?JSON.parse(sv):[];
+    const hasAct=daySessions.length>0||submitted;
+    if(hasAct){
+      daysLogged++;streak++;maxStreak=Math.max(maxStreak,streak);
+      daySessions.forEach(s=>{
+        sessions++;
+        totalMins+=(s.dur||0);
+        if(s.act) actCount[s.act]=(actCount[s.act]||0)+1;
+        if(s.mood) moodCount[s.mood]=(moodCount[s.mood]||0)+1;
+      });
+    } else {streak=0;}
+  }
+  const hrs=totalMins>=60?Math.round(totalMins/6)/10+'h':totalMins+'min';
+
+  document.getElementById('j-hero-sub').textContent=`${jMonthYear} · ${daysLogged} of ${lastDay} days active`;
+  document.getElementById('j-acts').textContent=sessions;
+  document.getElementById('j-days').textContent=daysLogged;
+  document.getElementById('j-hrs').textContent=hrs||'0min';
+  document.getElementById('j-streak').textContent=maxStreak;
+
+  // Highlights — generated from real data
   const hlColors={green:'var(--green-mid)',blue:'var(--blue-mid)',amber:'var(--amber-mid)',purple:'var(--purple-mid)',red:'var(--red-mid)'};
-  const hlBg={green:'var(--green-bg)',blue:'var(--blue-bg)',amber:'var(--amber-bg)',purple:'var(--purple-bg)',red:'var(--red-bg)'};
-  document.getElementById('j-highlights').innerHTML=d.hls.map(h=>`<div class="hl-card ${h.c}"><div style="font-size:13px;font-weight:600;color:${hlColors[h.c]};margin-bottom:3px">${h.t}</div><div style="font-size:12px;color:${hlColors[h.c]};opacity:.8;line-height:1.5">${h.d}</div></div>`).join('');
+  const hlCols=['green','blue','amber','purple'];
+  if(sessions===0){
+    document.getElementById('j-highlights').innerHTML='<div style="color:var(--muted);font-size:13px;padding:16px 0;text-align:center">No sessions logged yet this month.<br>Tap <strong>Log</strong> to start recording.</div>';
+  } else {
+    const hls=[];
+    if(maxStreak>0) hls.push({c:'green',t:`🔥 ${maxStreak}-day best streak`,d:'Consistency is the #1 factor in rehabilitation.'});
+    Object.entries(actCount).sort((a,b)=>b[1]-a[1]).slice(0,3).forEach((a,i)=>{
+      hls.push({c:hlCols[i+1]||'blue',t:`${a[0]} — ${a[1]} session${a[1]>1?'s':''}`,d:''});
+    });
+    const pct=Math.round((daysLogged/lastDay)*100);
+    if(pct<50) hls.push({c:'amber',t:`${pct}% days active`,d:'Aim for at least 5 active days per week.'});
+    document.getElementById('j-highlights').innerHTML=hls.slice(0,4).map(h=>`<div class="hl-card ${h.c}"><div style="font-size:13px;font-weight:600;color:${hlColors[h.c]};margin-bottom:${h.d?'3':'0'}px">${h.t}</div>${h.d?`<div style="font-size:12px;color:${hlColors[h.c]};opacity:.8;line-height:1.5">${h.d}</div>`:''}</div>`).join('');
+  }
+
+  // Mood distribution tags
   const pillColors=['var(--green-bg)','var(--blue-bg)','var(--amber-bg)','var(--purple-bg)'];
   const textColors=['var(--green)','var(--blue)','var(--amber)','var(--purple)'];
-  document.getElementById('j-obs').innerHTML=d.obs.map((o,i)=>`<span style="background:${pillColors[i%4]};color:${textColors[i%4]};font-size:11px;font-weight:500;padding:3px 10px;border-radius:20px">${o}</span>`).join('');
+  const moods=Object.entries(moodCount).sort((a,b)=>b[1]-a[1]);
+  document.getElementById('j-obs').innerHTML=moods.length
+    ?moods.map((m,i)=>`<span style="background:${pillColors[i%4]};color:${textColors[i%4]};font-size:11px;font-weight:500;padding:3px 10px;border-radius:20px">${m[0]} ×${m[1]}</span>`).join('')
+    :'<span style="color:var(--muted);font-size:12px">No mood data yet — select mood when logging</span>';
 }
-function adjMonth(n){monthIdx=Math.max(0,Math.min(MONTHS.length-1,monthIdx+n));renderMonth();}
+function adjMonth(n){
+  jMonthMo+=n;
+  if(jMonthMo<1){jMonthMo=12;jMonthYear--;}
+  if(jMonthMo>12){jMonthMo=1;jMonthYear++;}
+  renderMonth();
+}
+function getMilestones(yr){
+  const saved=localStorage.getItem('cp_milestones_'+yr);
+  if(saved) try{return JSON.parse(saved);}catch(e){}
+  const defaults={
+    2026:[],
+    2025:['Jan — Drone assembly activity started','Mar — Right hand first engaged','May — New 8-day streak record','Jun — Right-hand rate 25%'],
+    2024:['Mar — Hearing aid adjusted, broke 80%','Jul — Right-leg stand reached 2 sec','Dec — Stable year-end progress'],
+    2023:['Jan — Started Mackay LLMRC','Sep — First independent right-leg stand','Nov — Strabismus diagnosed, PRC started'],
+  };
+  return defaults[yr]||[];
+}
+function saveMilestones(yr,arr){localStorage.setItem('cp_milestones_'+yr,JSON.stringify(arr));}
+function addMilestone(yr){
+  const txt=prompt('New milestone (e.g. "Jun — First 3-hop right foot"):');
+  if(!txt||!txt.trim()) return;
+  const arr=getMilestones(yr);arr.push(txt.trim());saveMilestones(yr,arr);renderYear(yr);
+}
+function editMilestone(yr,idx){
+  const arr=getMilestones(yr);
+  const txt=prompt('Edit milestone:',arr[idx]);
+  if(txt===null) return;
+  if(!txt.trim()) arr.splice(idx,1); else arr[idx]=txt.trim();
+  saveMilestones(yr,arr);renderYear(yr);
+}
+function delMilestone(yr,idx){
+  if(!confirm('Delete this milestone?')) return;
+  const arr=getMilestones(yr);arr.splice(idx,1);saveMilestones(yr,arr);renderYear(yr);
+}
 function renderYear(yr){
   const data={
-    2025:{acts:99,days:124,metrics:[{n:'Left ear recognition',f:'85%',t:'88%',c:'var(--green-mid)'},{n:'Right-hand rate',f:'0%',t:'25%',c:'var(--blue-mid)'},{n:'Strabismus score',f:'1★',t:'2★',c:'var(--purple-mid)'}],milestones:['Jan — Drone assembly activity started','Mar — Right hand first engaged','May — New 8-day streak record','Jun — Right-hand rate 25%']},
-    2024:{acts:123,days:186,metrics:[{n:'Left ear recognition',f:'74%',t:'85%',c:'var(--green-mid)'},{n:'Right-leg stand',f:'1s',t:'2s',c:'var(--red-mid)'}],milestones:['Mar — Hearing aid adjusted, broke 80%','Jul — Right-leg stand reached 2 sec','Dec — Stable year-end progress']},
-    2023:{acts:89,days:98,metrics:[{n:'Right-leg stand',f:'0.5s',t:'1s',c:'var(--red-mid)'},{n:'Left ear recognition',f:'65%',t:'74%',c:'var(--green-mid)'}],milestones:['Jan — Started Mackay LLMRC','Sep — First independent right-leg stand','Nov — Strabismus diagnosed, PRC started']},
+    2026:{acts:0,days:0,metrics:[]},
+    2025:{acts:99,days:124,metrics:[{n:'Left ear recognition',f:'85%',t:'88%',c:'var(--green-mid)'},{n:'Right-hand rate',f:'0%',t:'25%',c:'var(--blue-mid)'},{n:'Strabismus score',f:'1★',t:'2★',c:'var(--purple-mid)'}]},
+    2024:{acts:123,days:186,metrics:[{n:'Left ear recognition',f:'74%',t:'85%',c:'var(--green-mid)'},{n:'Right-leg stand',f:'1s',t:'2s',c:'var(--red-mid)'}]},
+    2023:{acts:89,days:98,metrics:[{n:'Right-leg stand',f:'0.5s',t:'1s',c:'var(--red-mid)'},{n:'Left ear recognition',f:'65%',t:'74%',c:'var(--green-mid)'}]},
   };
   const d=data[yr];if(!d) return;
+  const milestones=getMilestones(yr);
+  const msRows=milestones.length
+    ?milestones.map((m,i)=>`<div style="display:flex;gap:8px;align-items:flex-start;padding:7px 0;border-bottom:0.5px solid var(--border)"><div style="width:6px;height:6px;border-radius:50%;background:var(--green-mid);margin-top:6px;flex-shrink:0"></div><span style="font-size:13px;flex:1;cursor:pointer" onclick="editMilestone(${yr},${i})">${m}</span><button onclick="delMilestone(${yr},${i})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;padding:0 2px;line-height:1">🗑</button></div>`).join('')
+    :`<div style="color:var(--muted);font-size:13px;padding:8px 0;text-align:center">No milestones yet — tap + Add</div>`;
+  const metricsHtml=d.metrics.length?`<div class="section-label">Metric changes</div><div class="card">${d.metrics.map(m=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:0.5px solid var(--border)"><span style="font-size:13px;font-weight:500">${m.n}</span><div style="display:flex;align-items:center;gap:6px"><span style="font-size:12px;text-decoration:line-through;color:var(--hint)">${m.f}</span><span style="font-size:13px;font-weight:600;color:${m.c}">→ ${m.t}</span></div></div>`).join('')}</div>`:'';
   document.getElementById('yr-content').innerHTML=`
     <div class="hero-card" style="margin-bottom:12px"><div style="font-size:16px;font-weight:600">${yr} Summary</div><div style="font-size:12px;opacity:.65;margin-top:2px">${d.acts} sessions · ${d.days} days logged</div></div>
-    <div class="section-label">Metric changes</div>
-    <div class="card">${d.metrics.map(m=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:0.5px solid var(--border)"><span style="font-size:13px;font-weight:500">${m.n}</span><div style="display:flex;align-items:center;gap:6px"><span style="font-size:12px;text-decoration:line-through;color:var(--hint)">${m.f}</span><span style="font-size:13px;font-weight:600;color:${m.c}">→ ${m.t}</span></div></div>`).join('')}</div>
-    <div class="section-label">Milestones</div>
-    <div class="card">${d.milestones.map(m=>`<div style="display:flex;gap:8px;align-items:flex-start;padding:7px 0;border-bottom:0.5px solid var(--border)"><div style="width:6px;height:6px;border-radius:50%;background:var(--green-mid);margin-top:4px;flex-shrink:0"></div><span style="font-size:13px">${m}</span></div>`).join('')}</div>`;
+    ${metricsHtml}
+    <div style="display:flex;align-items:center;justify-content:space-between;margin:12px 0 6px"><span style="font-size:10px;font-weight:600;letter-spacing:.08em;color:var(--muted);text-transform:uppercase">Milestones</span><button onclick="addMilestone(${yr})" style="background:var(--green-bg);border:0.5px solid var(--green);border-radius:6px;padding:3px 10px;font-size:11px;color:var(--green);cursor:pointer;font-weight:600">+ Add</button></div>
+    <div class="card">${msRows}</div>`;
 }
 
 // ── Monthly assessment ────────────────────────────────────────
@@ -1618,10 +1747,12 @@ renderHomeMetrics();
 renderGoals();
 renderActs();
 renderCalendar();
-renderYear(2025);
+renderYear(2026);
 // Load today's persisted sessions
 todaySessions=JSON.parse(localStorage.getItem('cp_sessions_'+logDate)||'[]');
 updateLogDateUI();
+// Sync from Google Sheets in background
+loadSessionsFromSheets();
 renderTodaySessions();
 showVideoStep('record');
 </script>
