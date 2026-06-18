@@ -2296,7 +2296,7 @@
         if (!Array.isArray(data.sessions)) return;
         const byDate = {};
         data.sessions.forEach(row => {
-          const d = String(row.date || '');
+          const d = String(row.date || '').trim().substring(0, 10);
           if (!d.match(/^\d{4}-\d{2}-\d{2}$/)) return;
           if (!byDate[d]) byDate[d] = [];
           byDate[d].push({ id: row.session_id || d + '-0', act: row.activity || '', emoji: row.emoji || '📝', dur: parseInt(row.duration_min) || 0, mood: row.mood || '', note: row.note || '' });

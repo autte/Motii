@@ -9,7 +9,10 @@ export default async function handler(req, res) {
     }
 
     try {
-        const response = await fetch(sheetUrl + '?action=read_sessions');
+        const response = await fetch(sheetUrl + '?action=read_sessions', {
+            redirect: 'follow',
+            headers: { 'Accept': 'application/json' }
+        });
         const text = await response.text();
         const data = JSON.parse(text);
         return res.status(200).json(data);
