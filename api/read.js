@@ -9,7 +9,7 @@ export default async function handler(req, res) {
     }
 
     try {
-        const response = await fetch(sheetUrl + '?action=read_sessions', {
+        const response = await fetch(sheetUrl + '?action=read_all', {
             redirect: 'follow',
             headers: { 'Accept': 'application/json' }
         });

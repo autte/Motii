@@ -2166,6 +2166,10 @@
       localStorage.setItem('cp_goals', JSON.stringify(GOALS));
       localStorage.setItem('cp_acts', JSON.stringify(ACTS));
       localStorage.setItem('cp_state_updated', new Date().toISOString().split('T')[0]);
+      // Sync to Sheets so other devices pick it up
+      fetch('/api/submit', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'app_state', data: { acts: ACTS, goals: GOALS } })
+      }).catch(() => {});
     }
     function loadState() {
       try {
@@ -2263,9 +2267,19 @@
     }
 
     // ── Log activity ──────────────────────────────────────────────
+    function renderActChips() {
+      const container = document.getElementById('act-chips');
+      if (!container || ACTS.length === 0) return;
+      container.innerHTML = ACTS.map((a, i) => `
+        <div class="act-chip${i===0?' sel':''}" data-act="${a.name}" data-emoji="${a.emoji}" onclick="selAct(this)">
+          <span class="act-emoji">${a.icon ? `<img src="${a.icon}" style="width:28px;height:28px;object-fit:cover;border-radius:4px;display:block;margin:0 auto 2px">` : a.emoji}</span>
+          <span class="act-name">${a.name}</span>
+        </div>`).join('');
+      logActEmoji = ACTS[0].emoji; logActName = ACTS[0].name;
+    }
     function resetLog() {
-      document.querySelectorAll('.act-chip').forEach((c, i) => c.classList.toggle('sel', i === 0));
-      logActEmoji = '⚽'; logActName = 'Kicking ball'; logDur = 30; logMood = '';
+      renderActChips();
+      logDur = 30; logMood = '';
       document.getElementById('dur-val').textContent = '30';
       document.querySelectorAll('#log-mood-row .mood-btn').forEach(b => b.classList.remove('sel'));
       const n = document.getElementById('log-note'); if (n) n.value = '';
@@ -2309,9 +2323,10 @@
     async function loadSessionsFromSheets() {
       try {
         const res = await fetch('/api/read');
-        if (!res.ok) return;
+        if (!res.ok) { console.warn('[Motii] /api/read failed:', res.status); return; }
         const data = await res.json();
-        if (!Array.isArray(data.sessions)) return;
+        console.log('[Motii] Sheets data:', { sessions: data.sessions?.length, hasActs: !!data.acts, hasGoals: !!data.goals, acts: data.acts });
+        if (!Array.isArray(data.sessions)) { console.warn('[Motii] sessions not array:', data); return; }
         const byDate = {};
         data.sessions.forEach(row => {
           const d = String(row.date || '').trim().substring(0, 10);
@@ -2329,7 +2344,18 @@
         updateLogDateUI();
         renderWeekStrip();
         if (logCalOpen) renderLogCalGrid();
-      } catch (e) { }
+        // Restore ACTS and GOALS from Sheets (cross-device sync)
+        if (Array.isArray(data.acts) && data.acts.length > 0) {
+          ACTS.length = 0; data.acts.forEach(a => ACTS.push(a));
+          localStorage.setItem('cp_acts', JSON.stringify(ACTS));
+          renderActs();
+        }
+        if (Array.isArray(data.goals) && data.goals.length > 0) {
+          GOALS.length = 0; data.goals.forEach(g => GOALS.push(g));
+          localStorage.setItem('cp_goals', JSON.stringify(GOALS));
+          renderGoals(); renderHomeMetrics();
+        }
+      } catch (e) { console.error('[Motii] loadSessionsFromSheets error:', e); }
     }
     function renderTodaySessions() {
       const wrap = document.getElementById('today-sessions-wrap');
@@ -2506,6 +2532,7 @@
       }).join('') : '<div style="text-align:center;padding:20px;color:var(--muted)">No goals yet</div>';
     }
     function renderActs() {
+      renderActChips();
       document.getElementById('acts-list').innerHTML = ACTS.map(a => `
     <div class="goal-item" onclick="editAct('${a.id}')" style="cursor:pointer">
       <div class="goal-icon" style="background:#f5f5f5;font-size:18px;overflow:hidden;padding:${a.icon?'0':''}">
@@ -2908,13 +2935,26 @@ Return ONLY valid JSON (no markdown):
       const file = input.files[0]; if (!file) return;
       const reader = new FileReader();
       reader.onload = e => {
-        actIconData = e.target.result;
-        const p = document.getElementById('a-icon-preview');
-        if (p) p.innerHTML = `<img src="${actIconData}" style="width:100%;height:100%;object-fit:cover;border-radius:8px">`;
-        const c = document.getElementById('a-icon-clear'); if (c) c.style.display = '';
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const SIZE = 160;
+          canvas.width = SIZE; canvas.height = SIZE;
+          const ctx = canvas.getContext('2d');
+          // Center-crop to square
+          const sq = Math.min(img.width, img.height);
+          const sx = (img.width - sq) / 2;
+          const sy = (img.height - sq) / 2;
+          ctx.drawImage(img, sx, sy, sq, sq, 0, 0, SIZE, SIZE);
+          actIconData = canvas.toDataURL('image/jpeg', 0.75);
+          const p = document.getElementById('a-icon-preview');
+          if (p) p.innerHTML = `<img src="${actIconData}" style="width:100%;height:100%;object-fit:cover;border-radius:8px">`;
+          const c = document.getElementById('a-icon-clear'); if (c) c.style.display = '';
+          input.value = '';
+        };
+        img.src = e.target.result;
       };
       reader.readAsDataURL(file);
-      input.value = '';
     }
     function clearActIcon() {
       actIconData = null;
