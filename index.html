@@ -2095,10 +2095,26 @@
             <option>Phase 3 (12 weeks)</option>
             <option>Long-term</option>
           </select></div>
+        <div class="field"><label>Target date (optional)</label><input type="date" id="g-date"></div>
+        <div class="field"><label>Status</label>
+          <div style="display:flex;gap:8px">
+            <div class="type-chip sel" id="g-status-active" onclick="document.getElementById('g-status-active').classList.add('sel');document.getElementById('g-status-paused').classList.remove('sel')">✅ Active</div>
+            <div class="type-chip" id="g-status-paused" onclick="document.getElementById('g-status-paused').classList.add('sel');document.getElementById('g-status-active').classList.remove('sel')">⏸ Paused</div>
+          </div>
+        </div>
         <div class="field"><label>Note (optional)</label><input type="text" id="g-note" placeholder="Any context...">
         </div>
       </div>
       <div id="modal-act-fields" style="display:none">
+        <div class="field">
+          <label>Icon</label>
+          <div style="display:flex;align-items:center;gap:10px">
+            <div id="a-icon-preview" style="width:48px;height:48px;border-radius:10px;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:26px;background:var(--bg2);overflow:hidden;flex-shrink:0">⚽</div>
+            <button type="button" onclick="document.getElementById('a-icon-input').click()" style="font-size:12px;color:var(--green-mid);background:var(--green-bg);border:0.5px solid var(--green);border-radius:8px;padding:6px 14px;cursor:pointer;font-weight:500">📷 Upload image</button>
+            <button type="button" id="a-icon-clear" onclick="clearActIcon()" style="font-size:11px;color:var(--muted);background:none;border:none;cursor:pointer;display:none;text-decoration:underline">Remove</button>
+            <input type="file" id="a-icon-input" accept="image/*" style="display:none" onchange="handleActIconUpload(this)">
+          </div>
+        </div>
         <div class="field"><label>Activity name</label><input type="text" id="a-name" placeholder="e.g. Kicking ball">
         </div>
         <div class="field"><label>Category</label>
@@ -2186,6 +2202,7 @@
     let calYear = _now.getFullYear(), calMonth = _now.getMonth();
 
     let logActName = 'Kicking ball', logActEmoji = '⚽', logDur = 30, logMood = '';
+    let lastAIResult = null;
     let todaySessions = [];
     let logDate = new Date().toISOString().split('T')[0];
     let logCalYear = new Date().getFullYear(), logCalMo = new Date().getMonth(), logCalOpen = false;
@@ -2194,6 +2211,7 @@
     let selGoalCat = 'eye', currentACat = 'sport';
     let mv = { stand: 2, jump: 0, prc: 10, hear: 88, star: 2 };
     let currentModalType = 'goal', editingId = null;
+    let actIconData = null; // base64 data URL for activity icon
 
     // ── Nav ───────────────────────────────────────────────────────
     function switchNav(id, el) {
@@ -2463,17 +2481,26 @@
     function renderGoals() {
       const f = goalFilter;
       const items = GOALS.filter(g => f === 'all' || g.cat === f);
+      const today = new Date().toISOString().split('T')[0];
       document.getElementById('goals-list').innerHTML = items.length ? items.map(g => {
         const p = pct(g);
-        const col = p >= 80 ? 'var(--green-mid)' : p >= 40 ? 'var(--amber-mid)' : 'var(--red-mid)';
-        return `<div class="goal-item" onclick="editGoal('${g.id}')" style="cursor:pointer">
+        const col = g.paused ? '#bbb' : p >= 80 ? 'var(--green-mid)' : p >= 40 ? 'var(--amber-mid)' : 'var(--red-mid)';
+        // Days remaining badge
+        let dateBadge = '';
+        if (g.targetDate) {
+          const diff = Math.ceil((new Date(g.targetDate) - new Date(today)) / 864e5);
+          if (diff < 0) dateBadge = `<span style="font-size:10px;color:var(--red-mid);font-weight:500;margin-left:4px">Overdue ${Math.abs(diff)}d</span>`;
+          else if (diff === 0) dateBadge = `<span style="font-size:10px;color:var(--amber-mid);font-weight:500;margin-left:4px">Due today</span>`;
+          else dateBadge = `<span style="font-size:10px;color:var(--muted);margin-left:4px">${diff}d left</span>`;
+        }
+        return `<div class="goal-item" onclick="editGoal('${g.id}')" style="cursor:pointer;opacity:${g.paused ? '.45' : '1'}">
       <div class="goal-icon" style="background:${g.bg}">${g.cat === 'eye' ? '👁' : g.cat === 'leg' ? '🦵' : g.cat === 'hand' ? '✋' : '👂'}</div>
       <div class="goal-info">
-        <div class="goal-name">${g.name}</div>
+        <div class="goal-name" style="display:flex;align-items:center;gap:4px">${g.name}${g.paused ? '<span style="font-size:10px;background:#eee;color:#999;border-radius:4px;padding:1px 5px;font-weight:500">Paused</span>' : ''}${dateBadge}</div>
         <div class="goal-sub">${g.phase} · Target ${g.tgt}${g.unit}</div>
-        <div class="prog-track"><div class="prog-fill" style="width:${p}%;background:${g.col}"></div></div>
+        <div class="prog-track"><div class="prog-fill" style="width:${p}%;background:${col}"></div></div>
       </div>
-      <div class="goal-pct" style="color:${g.col}">${p}%</div>
+      <div class="goal-pct" style="color:${col}">${p}%</div>
       <button class="del-btn" onclick="event.stopPropagation();delGoal('${g.id}')">🗑</button>
     </div>`;
       }).join('') : '<div style="text-align:center;padding:20px;color:var(--muted)">No goals yet</div>';
@@ -2481,7 +2508,9 @@
     function renderActs() {
       document.getElementById('acts-list').innerHTML = ACTS.map(a => `
     <div class="goal-item" onclick="editAct('${a.id}')" style="cursor:pointer">
-      <div class="goal-icon" style="background:#f5f5f5;font-size:18px">${a.emoji}</div>
+      <div class="goal-icon" style="background:#f5f5f5;font-size:18px;overflow:hidden;padding:${a.icon?'0':''}">
+        ${a.icon ? `<img src="${a.icon}" style="width:100%;height:100%;object-fit:cover;border-radius:8px">` : a.emoji}
+      </div>
       <div class="goal-info">
         <div class="goal-name">${a.name}</div>
         <div class="goal-sub">${a.freq} · ${a.dur} min${a.link ? ' · → ' + a.link : ''}</div>
@@ -2761,6 +2790,7 @@ Return ONLY valid JSON (no markdown):
 
     // ── AI result renderer ────────────────────────────────────────
     function renderAIResult(parsed) {
+      lastAIResult = parsed;
       const score = parsed.overall_score || 72;
       document.getElementById('ai-overall-score').textContent = score;
       document.getElementById('ai-summary').textContent = parsed.summary || 'Session analyzed.';
@@ -2827,23 +2857,46 @@ Return ONLY valid JSON (no markdown):
       ['dims', 'tips', 'compare'].forEach(x => document.getElementById('ai-tab-' + x).style.display = x === t ? 'block' : 'none');
     }
     async function saveAIResult() {
-      const today = new Date().toISOString().split('T')[0];
-      const payload = { type: 'video_record', data: { date: today, child_name: 'Emma', activity: 'Single-leg stand', filename: '', gdrive_link: '', ai_overall_score: parseInt(document.getElementById('ai-overall-score').textContent) || 72, ai_best_stand_sec: 2.8, ai_stability_score: 68, ai_posture_score: 74, ai_hand_score: 90, ai_key_tip: 'Right knee inward — place ball outside knee', ai_analyzed_at: today } };
+      const r = lastAIResult || {};
+      const payload = {
+        type: 'video_record',
+        data: {
+          date: logDate,
+          activity: logActName,
+          ai_overall_score: r.overall_score || 0,
+          step_symmetry_pct: r.step_symmetry_pct ?? '',
+          balance_score: r.balance_score ?? '',
+          right_leg_score: r.right_leg_score ?? '',
+          right_hand_score: r.right_hand_score ?? '',
+          posture_score: r.posture_score ?? '',
+          step_length_note: r.step_length_note || '',
+          summary: r.summary || '',
+          regression_alert: r.regression_alert || '',
+          fatigue_detected: r.fatigue_detected ? 'TRUE' : 'FALSE',
+          key_tip: r.tips?.[0]?.desc || '',
+          has_video: 'TRUE',
+          analyzed_at: new Date().toISOString()
+        }
+      };
       try {
-        await fetch('/api/submit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-        showToast('✅ Saved to Sheets');
-      } catch (e) { showToast('⚠ Could not save'); }
+        const resp = await fetch('/api/submit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        if (resp.ok) showToast('✅ Saved to Sheets');
+        else showToast('⚠ Could not save to Sheets');
+      } catch (e) { showToast('⚠ Could not save — check connection'); }
       showVideoStep('saved');
     }
-    function saveVideoOnly() { showVideoStep('saved'); }
+    function saveVideoOnly() {
+      fetch('/api/submit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'video_record', data: { date: logDate, activity: logActName, ai_overall_score: '', has_video: 'FALSE', analyzed_at: new Date().toISOString() } }) }).catch(() => {});
+      showVideoStep('saved');
+    }
 
     // ── Modal ─────────────────────────────────────────────────────
     function openModal(type) {
       editingId = null;
       currentModalType = type;
       document.getElementById('modal-title').textContent = type === 'goal' ? 'Add goal' : 'Add activity';
-      if (type === 'goal') { document.getElementById('g-name').value = ''; document.getElementById('g-cur').value = ''; document.getElementById('g-tgt').value = ''; document.getElementById('g-unit').value = ''; document.getElementById('g-phase').value = 'Phase 1'; document.getElementById('g-note').value = ''; }
-      else { document.getElementById('a-name').value = ''; document.getElementById('a-freq').value = ''; document.getElementById('a-dur').value = '30'; document.getElementById('a-link').value = ''; document.getElementById('a-obs').value = ''; }
+      if (type === 'goal') { document.getElementById('g-name').value = ''; document.getElementById('g-cur').value = ''; document.getElementById('g-tgt').value = ''; document.getElementById('g-unit').value = ''; document.getElementById('g-phase').value = 'Phase 1'; document.getElementById('g-note').value = ''; document.getElementById('g-date').value = ''; document.getElementById('g-status-active').classList.add('sel'); document.getElementById('g-status-paused').classList.remove('sel'); }
+      else { document.getElementById('a-name').value = ''; document.getElementById('a-freq').value = ''; document.getElementById('a-dur').value = '30'; document.getElementById('a-link').value = ''; document.getElementById('a-obs').value = ''; actIconData=null; setActIconPreview(null,'⚽'); }
       document.getElementById('modal-goal-fields').style.display = type === 'goal' ? 'block' : 'none';
       document.getElementById('modal-act-fields').style.display = type === 'act' ? 'block' : 'none';
       document.getElementById('modal-overlay').classList.add('show');
@@ -2851,6 +2904,30 @@ Return ONLY valid JSON (no markdown):
     function closeModal() { editingId = null; document.getElementById('modal-overlay').classList.remove('show'); }
     function selCat(el) { selGoalCat = el.dataset.cat; document.querySelectorAll('[data-cat]').forEach(c => c.classList.remove('sel')); el.classList.add('sel'); }
     function pickACat(el) { currentACat = el.dataset.acat; document.querySelectorAll('[data-acat]').forEach(c => c.classList.remove('sel')); el.classList.add('sel'); }
+    function handleActIconUpload(input) {
+      const file = input.files[0]; if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        actIconData = e.target.result;
+        const p = document.getElementById('a-icon-preview');
+        if (p) p.innerHTML = `<img src="${actIconData}" style="width:100%;height:100%;object-fit:cover;border-radius:8px">`;
+        const c = document.getElementById('a-icon-clear'); if (c) c.style.display = '';
+      };
+      reader.readAsDataURL(file);
+      input.value = '';
+    }
+    function clearActIcon() {
+      actIconData = null;
+      const emojiMap = { sport:'⚽', daily:'🏠', therapy:'🏥', game:'🎮' };
+      const p = document.getElementById('a-icon-preview'); if (p) p.innerHTML = emojiMap[currentACat]||'🏃';
+      const c = document.getElementById('a-icon-clear'); if (c) c.style.display = 'none';
+    }
+    function setActIconPreview(iconData, fallbackEmoji) {
+      const p = document.getElementById('a-icon-preview'); if (!p) return;
+      if (iconData) { p.innerHTML = `<img src="${iconData}" style="width:100%;height:100%;object-fit:cover;border-radius:8px">`; }
+      else { p.innerHTML = fallbackEmoji || '🏃'; }
+      const c = document.getElementById('a-icon-clear'); if (c) c.style.display = iconData ? '' : 'none';
+    }
     function editGoal(id) {
       const g = GOALS.find(x => x.id === id); if (!g) return;
       editingId = id; currentModalType = 'goal';
@@ -2863,6 +2940,10 @@ Return ONLY valid JSON (no markdown):
       document.getElementById('g-unit').value = g.unit || '';
       document.getElementById('g-phase').value = g.phase || 'Phase 1';
       document.getElementById('g-note').value = g.note || '';
+      document.getElementById('g-date').value = g.targetDate || '';
+      const paused = g.paused === true;
+      document.getElementById('g-status-active').classList.toggle('sel', !paused);
+      document.getElementById('g-status-paused').classList.toggle('sel', paused);
       selGoalCat = g.cat;
       document.querySelectorAll('[data-cat]').forEach(c => c.classList.toggle('sel', c.dataset.cat === g.cat));
       document.getElementById('modal-overlay').classList.add('show');
@@ -2880,6 +2961,8 @@ Return ONLY valid JSON (no markdown):
       document.getElementById('a-obs').value = a.obs || '';
       currentACat = a.cat;
       document.querySelectorAll('[data-acat]').forEach(c => c.classList.toggle('sel', c.dataset.acat === a.cat));
+      actIconData = a.icon || null;
+      setActIconPreview(actIconData, a.emoji || '🏃');
       document.getElementById('modal-overlay').classList.add('show');
     }
     async function saveModalItem() {
@@ -2890,11 +2973,13 @@ Return ONLY valid JSON (no markdown):
         const unit = document.getElementById('g-unit').value;
         const phase = document.getElementById('g-phase').value;
         const note = document.getElementById('g-note').value.trim();
+        const targetDate = document.getElementById('g-date').value;
+        const paused = document.getElementById('g-status-paused').classList.contains('sel');
         const colMap = { eye: '#7F77DD', leg: '#E24B4A', hand: '#378ADD', hearing: '#2d8a56' };
         const bgMap = { eye: '#EEEDFE', leg: '#FCEBEB', hand: '#E6F1FB', hearing: '#EAF3DE' };
         if (editingId) {
           const i = GOALS.findIndex(g => g.id === editingId);
-          if (i >= 0) GOALS[i] = { ...GOALS[i], name, cat: selGoalCat, cur, tgt, unit, phase, note, col: colMap[selGoalCat] || '#888', bg: bgMap[selGoalCat] || '#f5f5f5' };
+          if (i >= 0) GOALS[i] = { ...GOALS[i], name, cat: selGoalCat, cur, tgt, unit, phase, note, targetDate, paused, col: colMap[selGoalCat] || '#888', bg: bgMap[selGoalCat] || '#f5f5f5' };
         } else {
           const newGoal = { id: 'g' + Date.now(), name, cat: selGoalCat, cur, tgt, unit, phase, note, col: colMap[selGoalCat] || '#888', bg: bgMap[selGoalCat] || '#f5f5f5' };
           GOALS.push(newGoal);
@@ -2906,9 +2991,9 @@ Return ONLY valid JSON (no markdown):
         const emojiMap = { sport: '⚽', daily: '🏠', therapy: '🏥', game: '🎮' };
         if (editingId) {
           const i = ACTS.findIndex(a => a.id === editingId);
-          if (i >= 0) ACTS[i] = { ...ACTS[i], name, cat: currentACat, emoji: emojiMap[currentACat] || ACTS[i].emoji, freq: document.getElementById('a-freq').value, dur: parseInt(document.getElementById('a-dur').value) || 30, link: document.getElementById('a-link').value, obs: document.getElementById('a-obs').value };
+          if (i >= 0) ACTS[i] = { ...ACTS[i], name, cat: currentACat, emoji: emojiMap[currentACat] || ACTS[i].emoji, icon: actIconData !== undefined ? actIconData : ACTS[i].icon, freq: document.getElementById('a-freq').value, dur: parseInt(document.getElementById('a-dur').value) || 30, link: document.getElementById('a-link').value, obs: document.getElementById('a-obs').value };
         } else {
-          const newAct = { id: 'a' + Date.now(), name, emoji: emojiMap[currentACat] || '🏃', cat: currentACat, freq: document.getElementById('a-freq').value, dur: parseInt(document.getElementById('a-dur').value) || 30, link: document.getElementById('a-link').value, obs: document.getElementById('a-obs').value };
+          const newAct = { id: 'a' + Date.now(), name, emoji: emojiMap[currentACat] || '🏃', icon: actIconData || null, cat: currentACat, freq: document.getElementById('a-freq').value, dur: parseInt(document.getElementById('a-dur').value) || 30, link: document.getElementById('a-link').value, obs: document.getElementById('a-obs').value };
           ACTS.push(newAct);
           try { await fetch('/api/submit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'activity', data: { name, emoji: newAct.emoji, category: currentACat, frequency: newAct.freq, duration_min: newAct.dur, linked_goal_id: newAct.link, observation_note: newAct.obs } }) }); } catch (e) { }
         }
